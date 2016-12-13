@@ -21,10 +21,15 @@ public class UserInterface implements Runnable{
 		{
 			instance = new UserInterface();
 			System.out.println("What port do you want to use for listening?");
-			int port;
-			while((port = Integer.parseInt(console.readLine())) != 0)
-			{
-				
+			String port;
+			try {
+				while((port = console.readLine()) != null)
+				{
+					
+				}
+			}catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 		}

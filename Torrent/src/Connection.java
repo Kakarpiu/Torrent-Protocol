@@ -64,8 +64,11 @@ public class Connection {
 				TCP_out.println("Connect");
 				while((handshake = TCP_input.readLine()) != null)
 				{
+					// Czy to w ogóle ma sens ? 
 					if(handshake.equals("ACK"))
 						lock = true;
+					else
+						System.out.println("Can't establish connection");
 				}
 				
 			} catch (IOException e) {
