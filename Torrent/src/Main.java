@@ -5,8 +5,8 @@ public class Main {
 		// TODO Auto-generated method stub
 		
 		UserInterface ui = UserInterface.getInstance();
-		HostListener hl = HostListener.getInstance();
-		Runnable[] freds = {ui, hl};
+//		HostListener hl = HostListener.getInstance();
+		Runnable[] freds = {ui};
 		
 		for(Runnable r : freds)
 		{
