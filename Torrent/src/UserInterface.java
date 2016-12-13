@@ -5,9 +5,10 @@ import java.net.*;
 public class UserInterface implements Runnable{
 
 	private static UserInterface instance = null; 
-	private BufferedReader console;
+	private static BufferedReader console;
 	private String argument;
 	private Connection peer;
+	private HostListener listen;
 
 	protected UserInterface()
 	{
@@ -17,7 +18,16 @@ public class UserInterface implements Runnable{
 	public static UserInterface getInstance()
 	{
 		if(instance == null)
-			instance = new UserInterface(); 
+		{
+			instance = new UserInterface();
+			System.out.println("What port do you want to use for listening?");
+			int port;
+			while((port = Integer.parseInt(console.readLine())) != 0)
+			{
+				
+			}
+			
+		}
 		return instance;
 	}
 	
