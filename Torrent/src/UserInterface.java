@@ -9,6 +9,7 @@ public class UserInterface implements Runnable{
 	private String argument;
 	private Connection peer;
 	private HostListener listen;
+	protected static boolean portEstablished = false;
 
 	private UserInterface()
 	{
@@ -20,8 +21,6 @@ public class UserInterface implements Runnable{
 		if(instance == null)
 		{
 			instance = new UserInterface();
-			
-			boolean portEstablished = false;
 			while(!portEstablished)
 			{
 				System.out.println("What port do you want to use for listening? Choose between 10 000 and 60 000");
@@ -42,9 +41,7 @@ public class UserInterface implements Runnable{
 		return instance;
 	}
 	
-	public void run() {
-		// TODO Auto-generated method stub
-		System.out.println("Port assigned.");		
+	public void run() {	
 		while(true)
 		{
 			try {
@@ -53,7 +50,6 @@ public class UserInterface implements Runnable{
 					commandCenter(argument);
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -64,11 +60,10 @@ public class UserInterface implements Runnable{
 		String[] arguments = command.split("\\s");
 		int argsCount = arguments.length;
 		String commandName = arguments[0];
-		System.out.println(arguments[0]);
 		
 		switch(commandName)
 		{	
-			case "CONN" :  CONN(arguments, argsCount); break;
+			case "CONNECT" :  CONN(arguments, argsCount); break;
 		}
 	}
 	
