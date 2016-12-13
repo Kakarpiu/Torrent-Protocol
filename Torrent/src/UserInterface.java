@@ -20,7 +20,7 @@ public class UserInterface implements Runnable{
 		if(instance == null)
 		{
 			instance = new UserInterface();
-			System.out.println("What port do you want to use for listening?");
+			System.out.println("What port do you want to use for listening? Choose between 10 000 and 60 000");
 			String port;
 			try {
 				while((port = console.readLine()) != null)
