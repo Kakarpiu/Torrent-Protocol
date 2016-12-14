@@ -1,13 +1,13 @@
+import java.util.*;
 import java.io.*;
 import java.net.*;
 
-public class Connection {
+public class Connection extends Thread implements Runnable{
 	
-	
+	private static Connection instance = null;	
 	private static String ip;
 	private static int port;
-	private static String protocol;
-	private boolean lock = false;
+	protected static boolean lock = false;
 	
 	// TCP protocol vars
 	private Socket serverPeerSocket = null;
@@ -17,20 +17,19 @@ public class Connection {
 	// UDP protocol vars
 	private DatagramSocket peerSocker = null;
 	
-	private static Connection instance = null;
 	// FILETRANSFER LIST
+	private static ArrayList<FileTransfer> transfers = new ArrayList();
 	
-	private Connection(String ip, int port, String protocol)
+	private Connection(String ip, int port)
 	{
 		this.ip = ip;
 		this.port = port;
-		this.protocol = protocol;
 	}
 	
-	public static Connection getInstance(String ip, int port, String protocol)
+	public static Connection getInstance(String ip, int port)
 	{
 		if(instance == null)
-			instance = new Connection(ip, port, protocol);
+			instance = new Connection(ip, port);
 		return instance;
 	}
 	
@@ -44,11 +43,6 @@ public class Connection {
 		return port;
 	}
 	
-	public String getProtocol()
-	{
-		return protocol;
-	}
-	
 	public Socket getSocket()
 	{
 		return serverPeerSocket;
@@ -56,7 +50,7 @@ public class Connection {
 	
 	public void connect()
 	{
-		if(protocol.equals("TCP") && lock == false)
+		if(lock == false)
 		{
 			try 
 			{
@@ -64,16 +58,8 @@ public class Connection {
 				TCP_out = new PrintWriter(serverPeerSocket.getOutputStream(), true);
 				TCP_input = new BufferedReader(
 						new InputStreamReader(serverPeerSocket.getInputStream()));
-				
-				String handshake;
-				TCP_out.println("Connect");
-				while((handshake = TCP_input.readLine()) != null)
-				{
-					if(handshake.equals("ACK"))
-						lock = true;
-					else
-						System.out.println("Can't establish connection");
-				}
+				System.out.println("Socket created");
+				run();
 				
 			} catch (IOException e) 
 			{
@@ -81,6 +67,55 @@ public class Connection {
 			}
 		}
 	}
+
+	@Override
+	public void run() 
+	{
+		System.out.println("inside run of connection");
+		int delay = 500;
+		int timeout = 0;
+		while(!serverPeerSocket.isConnected()) 
+		{ 
+			System.out.println("inside loop in run");
+			try {
+				System.out.println("."); 
+				Thread.sleep(delay);
+				timeout += delay;
+				if(timeout > 15000)
+				{
+					System.out.println("Timeout ocurred. Connection is not established");
+					return;
+				}
+			} 
+			catch (InterruptedException e)
+			{
+				System.out.println("Could not connect. Thread interrupted.");
+			} 
+		}
+		
+		String handshake;
+		TCP_out.println("I want to connect");
+		System.out.println("After sending req");
+		try 
+		{
+			while((handshake = TCP_input.readLine()) != null)
+			{
+				System.out.println("inside loop ack");
+				if(handshake.equals("ACK"))
+				{
+					lock = true;
+					System.out.println("Connection established");
+				}
+				else
+					System.out.println("Can't establish connection");
+			}
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+	}
+	
 }
 
 

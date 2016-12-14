@@ -4,8 +4,14 @@ import java.net.*;
 public class HostListener implements Runnable{
 
 	private int port;
+	
+	// TCP Socket
 	private ServerSocket serverSocket = null;
-	private HostListener instance = null;
+	private Socket clientSocket = null;
+	private BufferedReader listenerIN = null;
+	private PrintWriter listenerOUT = null;
+	
+	private static HostListener instance = null;
 	
 	private HostListener(int port)
 	{
@@ -23,7 +29,7 @@ public class HostListener implements Runnable{
 		}
 	}
 	
-	public HostListener getInstance(int port)
+	public static HostListener getInstance(int port)
 	{
 		if(instance == null)
 			instance = new HostListener(port);
@@ -38,7 +44,9 @@ public class HostListener implements Runnable{
 		{
 			try 
 			{
-				serverSocket.accept();
+				System.out.println("Im in run");
+				clientSocket = serverSocket.accept();
+				receive();
 			}
 			catch (IOException e) 
 			{
@@ -46,5 +54,47 @@ public class HostListener implements Runnable{
 			}
 		}
 	}
-
+	
+	public void receive()
+	{
+		try
+		{
+			System.out.println("I'm in receive");
+			listenerIN = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			listenerOUT = new PrintWriter(clientSocket.getOutputStream(), true);
+			
+			String handshake;
+			while( (handshake = listenerIN.readLine()) != null)
+			{
+				if(handshake == "I want to connect" && Connection.lock == false)	
+				{
+					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ACK to accept connection.");
+					String answer = UserInterface.console.readLine();
+					listenerOUT.println(answer);
+					if(answer == "ACK")
+					{
+						Connection.lock = true;
+					}
+					else
+					{
+						listenerOUT.println("NAK");
+						clientSocket.close();
+					}
+				}
+				else
+				{
+					listenerOUT.println("NAK");
+					clientSocket.close();
+				}
+			}
+		}
+		
+		catch (IOException e) 
+		{
+			System.out.println();;
+		}
+		
+		
+	
+	}
 }
