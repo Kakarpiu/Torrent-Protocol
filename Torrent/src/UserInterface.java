@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.*;
 
+import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
+
 
 public class UserInterface extends Thread{
 
@@ -24,7 +26,8 @@ public class UserInterface extends Thread{
 		return instance;
 	}
 	
-	public void run() {	
+	public void run() 
+	{	
 		while(true)
 		{
 			try
@@ -34,7 +37,8 @@ public class UserInterface extends Thread{
 					commandCenter(argument);
 				}
 			}
-			catch (IOException e) {
+			catch (IOException e) 
+			{
 				e.printStackTrace();
 			}
 		}
@@ -49,11 +53,25 @@ public class UserInterface extends Thread{
 		
 		switch(commandName)
 		{	
-			case "con" : CONN(arguments, argsCount); break;
+			case "CONNECT" : 
+				{
+					connect(arguments, argsCount); 
+					break;
+				}
+			case "ACK" : 
+				{
+					synchronized(this)
+					{
+						HostListener.ackConnection("ACK"); 
+						notify();
+						System.out.println("Notified");
+					}
+					break;
+				}
 		}
 	}
 	
-	public void CONN(String[] arguments, int argsCount)
+	public void connect(String[] arguments, int argsCount)
 	{
 		System.out.println("in CONN");
 		if(Connection.lock == true)

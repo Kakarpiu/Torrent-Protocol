@@ -105,15 +105,23 @@ public class Connection extends Thread {
 				{
 					lock = true;
 					System.out.println("Connection established");
+					serverPeerSocket.close();
+					break;
 				}
 				else
+				{
+					System.out.println(handshake);
 					System.out.println("Can't establish connection");
+					serverPeerSocket.close();
+					break;
+				}
 			}
 		} 
 		catch (IOException e) 
 		{
 			e.printStackTrace();
 		}
+		
 	}
 	
 }

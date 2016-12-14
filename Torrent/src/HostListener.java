@@ -10,6 +10,7 @@ public class HostListener extends Thread{
 	private Socket clientSocket = null;
 	private BufferedReader listenerIN = null;
 	private PrintWriter listenerOUT = null;
+	private static String ack;
 	
 	private static HostListener instance = null;
 	
@@ -20,6 +21,7 @@ public class HostListener extends Thread{
 		{
 			serverSocket = new ServerSocket(port);
 			UserInterface.portEstablished = true;
+			this.setName("HostListener");
 			System.out.println("Host Listens on port number: "+port);
 		} 
 		catch (IOException e)
@@ -55,6 +57,12 @@ public class HostListener extends Thread{
 		}
 	}
 	
+	public static void ackConnection(String a)
+	{
+		ack = a;
+		System.out.println("Inside ack");
+	}
+	
 	public void receive()
 	{
 		try
@@ -68,14 +76,27 @@ public class HostListener extends Thread{
 			{
 				System.out.println(handshake);
 				System.out.println(Connection.lock);
-				if((handshake == "I want to connect") && (Connection.lock == false))	
+				if((handshake.equals("I want to connect")) && (Connection.lock == false))	
 				{
 					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ACK to accept connection.");
-					String answer = UserInterface.console.readLine();
-					listenerOUT.println(answer);
-					if(answer == "ACK")
+					try 
+					{
+						synchronized (this)
+						{
+							this.wait();
+							System.out.println("After Wait in recive");
+							listenerOUT.println(ack);
+						}
+					}
+					catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					if(ack.equals("ACK"))
 					{
 						Connection.lock = true;
+						System.out.println("lock set");
+						clientSocket.close();
 					}
 					else
 					{
@@ -93,10 +114,8 @@ public class HostListener extends Thread{
 		
 		catch (IOException e) 
 		{
-			System.out.println();;
+			System.out.println("Could not recive connection.");
 		}
 		
-		
-	
 	}
 }
