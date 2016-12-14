@@ -26,12 +26,9 @@ public class Main {
 			catch (IOException e) { System.out.println("I/O Exception"); }
 		}
 		
-		Runnable[] freds = {ui, hl};
+		ui.start();
+		hl.start();
 		
-		for(Runnable r : freds)
-		{
-			r.run();
-		}
 	}
 
 }

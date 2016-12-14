@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
-public class Connection extends Thread implements Runnable{
+public class Connection extends Thread {
 	
 	private static Connection instance = null;	
 	private static String ip;
@@ -100,7 +100,7 @@ public class Connection extends Thread implements Runnable{
 		{
 			while((handshake = TCP_input.readLine()) != null)
 			{
-				System.out.println("inside loop ack");
+				System.out.println(handshake);
 				if(handshake.equals("ACK"))
 				{
 					lock = true;

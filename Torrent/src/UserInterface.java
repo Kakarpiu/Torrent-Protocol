@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 
 
-public class UserInterface implements Runnable{
+public class UserInterface extends Thread{
 
 	private static UserInterface instance = null; 
 	static BufferedReader console;

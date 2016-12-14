@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-public class HostListener implements Runnable{
+public class HostListener extends Thread{
 
 	private int port;
 	
@@ -66,7 +66,9 @@ public class HostListener implements Runnable{
 			String handshake;
 			while( (handshake = listenerIN.readLine()) != null)
 			{
-				if(handshake == "I want to connect" && Connection.lock == false)	
+				System.out.println(handshake);
+				System.out.println(Connection.lock);
+				if((handshake == "I want to connect") && (Connection.lock == false))	
 				{
 					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ACK to accept connection.");
 					String answer = UserInterface.console.readLine();
