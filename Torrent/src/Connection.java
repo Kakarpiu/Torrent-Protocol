@@ -63,8 +63,9 @@ public class Connection {
 			int timeout = 0;
 			while(!serverPeerSocket.isConnected()) 
 			{ 
-				try {
-					System.out.println("."); 
+				try 
+				{
+					System.out.print("."); 
 					Thread.sleep(delay);
 					timeout += delay;
 					if(timeout > 15000)
