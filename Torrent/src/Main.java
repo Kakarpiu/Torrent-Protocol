@@ -25,7 +25,7 @@ public class Main {
 			catch (NumberFormatException e) { System.out.println("Number Format Exception."); }
 			catch (IOException e) { System.out.println("I/O Exception"); }
 		}
-		
+	
 		ui.start();
 		hl.start();
 		

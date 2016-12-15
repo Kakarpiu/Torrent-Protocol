@@ -46,7 +46,6 @@ public class UserInterface extends Thread{
 	
 	private void commandCenter(String command)
 	{
-		System.out.println("commandCenter");
 		String[] arguments = command.split("\\s");
 		int argsCount = arguments.length;
 		String commandName = arguments[0];
@@ -60,12 +59,12 @@ public class UserInterface extends Thread{
 				}
 			case "ACK" : 
 				{
-					synchronized(this)
-					{
-						HostListener.ackConnection("ACK"); 
-						notify();
-						System.out.println("Notified");
-					}
+					HostListener.ackConnection("ACK");
+					break;
+				}
+			case "DISCONNECT" :
+				{
+					peer.disconnect();
 					break;
 				}
 		}
@@ -73,7 +72,6 @@ public class UserInterface extends Thread{
 	
 	public void connect(String[] arguments, int argsCount)
 	{
-		System.out.println("in CONN");
 		if(Connection.lock == true)
 		{
 			System.out.println("Connection already established to "+peer.getIp()+":"+peer.getPort()+". Disconnect this connection to establish new");
@@ -93,13 +91,25 @@ public class UserInterface extends Thread{
 			try
 			{
 				port = Integer.parseInt(arguments[2]);
-				System.out.println("beefore get instance");
 				peer = Connection.getInstance(ip, port);
-				System.out.println("after get instance");
 				peer.connect();
 			}
-			catch (NumberFormatException e ) { System.out.println("Port number is not Integer!"); return;}
+			catch (NumberFormatException e ) 
+			{ 
+				System.out.println("Port number is not Integer!"); 
+				return;
+			}
 		}
+	}
+	
+	public void disconnect()
+	{
+		if(Connection.lock == true)
+		{
+			peer.disconnect();
+		}
+		else
+			System.out.println("Couldn't disconnect from peer, because no connection was established");
 	}
 	
 }
