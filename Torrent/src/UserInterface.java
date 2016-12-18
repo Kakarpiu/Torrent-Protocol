@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 
@@ -7,11 +8,12 @@ import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 public class UserInterface extends Thread{
 
 	private static UserInterface instance = null; 
-	static BufferedReader console;
+	protected static BufferedReader console;
 	private static Connection peer;
 	protected static boolean portEstablished = false;
-	private String argument;
-
+	private String argument;	
+	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
+	
 	private UserInterface()
 	{
 		console = new BufferedReader(new InputStreamReader(System.in));
@@ -53,20 +55,25 @@ public class UserInterface extends Thread{
 		switch(commandName)
 		{	
 			case "CONNECT" : 
-				{
-					connect(arguments, argsCount); 
-					break;
-				}
+			{
+				connect(arguments, argsCount); 
+				break;
+			}
 			case "ACK" : 
-				{
-					HostListener.ackConnection("ACK");
-					break;
-				}
+			{
+				HostListener.ackConnection("ACK");
+				break;
+			}
 			case "DISCONNECT" :
-				{
-					peer.disconnect();
-					break;
-				}
+			{
+				peer.disconnect();
+				break;
+			}
+			case "FILELIST" :
+			{
+				fileList.showFiles();
+			}
+				
 		}
 	}
 	
