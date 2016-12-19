@@ -1,4 +1,5 @@
 import java.io.*;
+import java.math.*;
 import java.util.*;
 
 public class FileList {
@@ -30,13 +31,56 @@ public class FileList {
 	{
 		for(int i = 0; i<fileList.size(); i++)
 		{
-			System.out.println(i+". "+fileList.get(i).getName()+" "+fileList.get(i).length()/1024/1024+" MB");
-		}
+			double size = fileList.get(i).length();
+			if(size < 1024)
+			{
+				System.out.println(i+". "+fileList.get(i).getName()+" "+size+" B");
+				continue;
+			}
+			size = size/1024;
+			if(size < 1024 && size > 1)
+			{
+				System.out.println(i+". "+fileList.get(i).getName()+" "+
+						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" KB");
+				continue;
+			}
+			size = size/1024;
+			if(size > 1)
+			{
+				System.out.println(i+". "+fileList.get(i).getName()+" "+
+						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" MB");
+				continue;
+			}				
+		}	
 	}
 	
-	public File getFile(int index)
+	public String sendFiles()
 	{
-		return fileList.get(index);
+		String list = "File list from host: "+Connection.getIp()+"\n";
+		for(int i = 0; i<fileList.size(); i++)
+		{
+			double size = fileList.get(i).length();
+			if(size < 1024)
+			{
+				list += (i+". "+fileList.get(i).getName()+" "+size+" B\n");
+				continue;
+			}
+			size = size/1024;
+			if(size < 1024 && size > 1)
+			{
+				list += (i+". "+fileList.get(i).getName()+" "+
+						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" KB\n");
+				continue;
+			}
+			size = size/1024;
+			if(size > 1)
+			{
+				list += (i+". "+fileList.get(i).getName()+" "+
+						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" MB\n");
+				continue;
+			}		
+		}
+		return list;
 	}
 	
 	public File getFile(String name)

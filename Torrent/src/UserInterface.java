@@ -9,7 +9,7 @@ public class UserInterface extends Thread{
 
 	private static UserInterface instance = null; 
 	protected static BufferedReader console;
-	private static Connection peer;
+	protected static Connection peer;
 	protected static boolean portEstablished = false;
 	private String argument;	
 	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
@@ -72,10 +72,12 @@ public class UserInterface extends Thread{
 			case "FILELIST" :
 			{
 				fileList.showFiles();
+				break;
 			}
 			case "GETLIST" :
 			{
-				
+				peer.getFileList();
+				break;
 			}
 				
 		}
@@ -121,6 +123,11 @@ public class UserInterface extends Thread{
 		}
 		else
 			System.out.println("Couldn't disconnect from peer, because no connection was established");
+	}
+	
+	public void transfer()
+	{
+		
 	}
 	
 }

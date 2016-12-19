@@ -8,17 +8,9 @@ public class Connection {
 	private static String ip;
 	private static int port;
 	protected static boolean lock = false;
-	
-	// TCP protocol vars
-	private Socket serverPeerSocket = null;
-	private PrintWriter TCP_out = null;
-	private BufferedReader TCP_input = null;
-	
-	// UDP protocol vars
-	private DatagramSocket peerSocker = null;
-	
+		
 	// FILETRANSFER LIST
-	private static ArrayList<FileTransfer> transfers = new ArrayList();
+	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
 	
 	private Connection(String ip, int port)
 	{
@@ -33,35 +25,28 @@ public class Connection {
 		return instance;
 	}
 	
-	public String getIp()
+	public static String getIp()
 	{
 		return ip;
 	}
 	
-	public int getPort()
+	public static int getPort()
 	{
 		return port;
-	}
-	
-	public Socket getSocket()
-	{
-		return serverPeerSocket;
-	}
-	
-	
+	}	
 	
 	public void connect()
 	{
 		try 
 		{
-			serverPeerSocket = new Socket(ip, port);
-			TCP_out = new PrintWriter(serverPeerSocket.getOutputStream(), true);
-			TCP_input = new BufferedReader(
-					new InputStreamReader(serverPeerSocket.getInputStream()));
+			Socket socket = new Socket(ip, port);
+			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
+			BufferedReader TCP_input = new BufferedReader(
+					new InputStreamReader(socket.getInputStream()));
 			
 			int delay = 500;
 			int timeout = 0;
-			while(!serverPeerSocket.isConnected()) 
+			while(!socket.isConnected()) 
 			{ 
 				try 
 				{
@@ -91,21 +76,20 @@ public class Connection {
 					{
 						lock = true;
 						System.out.println("Connection established");
-						break;
 					}
 					else
 					{
-						System.out.println(handshake);
 						System.out.println("Can't establish connection");
-						break;
 					}
 				}
 				TCP_out.close();
 				TCP_input.close();
-				serverPeerSocket.close();
+				socket.close();
 			} 
-			
-			catch (IOException e) {	System.out.println("Socket closed."); }
+			catch (IOException e) 
+			{	
+				System.out.println("Socket closed."); 
+			}
 			
 		} 
 		catch (IOException e) 
@@ -117,14 +101,40 @@ public class Connection {
 	public void disconnect()
 	{
 		try {
-			serverPeerSocket = new Socket(ip, port);
-			TCP_out = new PrintWriter(serverPeerSocket.getOutputStream(), true);
+			Socket socket = new Socket(ip, port);
+			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
 			TCP_out.println("Disconnect");
 			lock = false;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public void getFileList()
+	{
+		try 
+		{
+			if(lock)
+			{
+				Socket socket = new Socket(ip, port);
+				PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				out.println("Get List");
+				String response;
+				while((response = in.readLine()) != null)
+				{
+					System.out.println(response);
+				}
+				socket.close();
+			}
+			else
+				System.out.println("No connection established");
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
 	}
 	
 }

@@ -11,6 +11,7 @@ public class HostListener extends Thread{
 	private BufferedReader listenerIN = null;
 	private PrintWriter listenerOUT = null;
 	private static String answer;
+	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
 	
 	private static HostListener instance = null;
 	
@@ -86,11 +87,15 @@ public class HostListener extends Thread{
 					
 					if(answer.equals("ACK"))
 					{
-						Connection.lock = true;
+						UserInterface.peer = Connection.getInstance(clientSocket.getInetAddress().toString(), clientSocket.getPort());
+						UserInterface.peer.lock = true;
 						System.out.println("Connection established");
 						listenerOUT.println("ACK");
 						clientSocket.close();
-						return;
+					}
+					else
+					{
+						clientSocket.close();
 					}
 				}
 				else if(handshake.equals("Disconnect"))
@@ -98,17 +103,16 @@ public class HostListener extends Thread{
 					Connection.lock = false;
 					System.out.println("Peer has disconnected.");
 					clientSocket.close();
-					return;
 				}
 				else if(handshake.equals("Get List"))
 				{
-					
+					listenerOUT.println(fileList.sendFiles());
+					clientSocket.close();
 				}
 				else
 				{
 					listenerOUT.println("NAK");
 					clientSocket.close();
-					return;
 				}
 			}
 		}
