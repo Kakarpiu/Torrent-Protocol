@@ -73,6 +73,10 @@ public class UserInterface extends Thread{
 			{
 				fileList.showFiles();
 			}
+			case "GETLIST" :
+			{
+				
+			}
 				
 		}
 	}

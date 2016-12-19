@@ -100,6 +100,10 @@ public class HostListener extends Thread{
 					clientSocket.close();
 					return;
 				}
+				else if(handshake.equals("Get List"))
+				{
+					
+				}
 				else
 				{
 					listenerOUT.println("NAK");
