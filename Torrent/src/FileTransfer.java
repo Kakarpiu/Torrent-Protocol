@@ -30,25 +30,21 @@ public class FileTransfer extends Thread{
 		}
 	}
 	
-	public void exchange(String command)
+	public void send()
 	{
-		if(command.equals("push"))
+		try 
 		{
-			try 
+			while((fileIn.read(buff, bufferSize*n, bufferSize)) > -1)
 			{
-				while((fileIn.read(buff, bufferSize*n, bufferSize)) > -1)
-				{
-					send.write(buff);
-					n++;
-				}
-			} 
-			catch (IOException e) 
-			{
-				System.out.println("Disconnected");
+				send.write(buff);
+				n++;
 			}
+		} 
+		catch (IOException e) 
+		{
+			System.out.println("Disconnected");
 		}
-			
-	}
+	 }
 	
 	
 }

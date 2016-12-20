@@ -4,12 +4,13 @@ import java.util.*;
 
 public class FileList {
 	
+	private String dirpath;
 	private static FileList instance = null; 
 	private ArrayList<File> fileList = new ArrayList<File>();
 	
 	private FileList(String dirpath)
 	{
-		System.out.println(dirpath);
+		this.dirpath = dirpath;
 		File temp = new File(dirpath);
 		for(File f : temp.listFiles())
 		{
@@ -17,7 +18,15 @@ public class FileList {
 		}
 	}
 	
-	
+	private void refreshList()
+	{
+		fileList.clear();
+		File temp = new File(dirpath);
+		for(File f : temp.listFiles())
+		{
+			fileList.add(f);
+		}
+	}
 	
 	public static FileList getInstance(String dirpath)
 	{
@@ -29,6 +38,7 @@ public class FileList {
 	
 	public void showFiles()
 	{
+		refreshList();
 		for(int i = 0; i<fileList.size(); i++)
 		{
 			double size = fileList.get(i).length();
@@ -90,8 +100,6 @@ public class FileList {
 		{
 			if(f.getName().equals(name))
 				file = f;
-			else
-				System.out.println("No file wtih such");
 		}
 		return file;
 	}

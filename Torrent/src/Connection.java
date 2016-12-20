@@ -10,7 +10,8 @@ public class Connection {
 	protected static boolean lock = false;
 		
 	// FILETRANSFER LIST
-	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
+	protected static ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
+	//	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
 	
 	private Connection(String ip, int port)
 	{
@@ -116,6 +117,11 @@ public class Connection {
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public void push(File file)
+	{
+		transfers.add(new FileTransfer(ip, port, file)); 
 	}
 	
 }
