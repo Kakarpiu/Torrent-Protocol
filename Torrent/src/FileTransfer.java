@@ -2,24 +2,52 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
-public class FileTransfer {
+public class FileTransfer extends Thread{
 	
 	private Socket socket = null;
-	private OutputStream fileOut = null;
-	private InputStream fileIn = null;
+	private PrintWriter socketOUT = null;
+	private OutputStream send = null;
+	private FileInputStream fileIn = null;
+	private File file = null;
+	private int n = 1;
 	
-	public FileTransfer(String ip, int port)
+	private int bufferSize = 8*1024;
+	private byte[] buff = new byte[bufferSize];
+	
+	public FileTransfer(String ip, int port, File file)
 	{
 		try 
 		{
 			socket = new Socket(ip, port);
-			fileOut = socket.getOutputStream();
-			fileIn = socket.getInputStream();
+			send = socket.getOutputStream();
+			socketOUT = new PrintWriter(socket.getOutputStream(), true);
+			fileIn = new FileInputStream(file);
+			this.file = file;
 		}
 		catch (IOException e) 
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public void exchange(String command)
+	{
+		if(command.equals("push"))
+		{
+			try 
+			{
+				while((fileIn.read(buff, bufferSize*n, bufferSize)) > -1)
+				{
+					send.write(buff);
+					n++;
+				}
+			} 
+			catch (IOException e) 
+			{
+				System.out.println("Disconnected");
+			}
+		}
+			
 	}
 	
 	

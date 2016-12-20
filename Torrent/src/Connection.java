@@ -39,41 +39,22 @@ public class Connection {
 	{
 		try 
 		{
-			Socket socket = new Socket(ip, port);
+			Socket socket = new Socket();
+			socket.setSoTimeout(15000);
+			socket.connect(new InetSocketAddress(ip, port));
 			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader TCP_input = new BufferedReader(
 					new InputStreamReader(socket.getInputStream()));
-			
-			int delay = 500;
-			int timeout = 0;
-			while(!socket.isConnected()) 
-			{ 
-				try 
-				{
-					System.out.print("."); 
-					Thread.sleep(delay);
-					timeout += delay;
-					if(timeout > 15000)
-					{
-						System.out.println("Timeout ocurred. Connection is not established");
-						return;
-					}
-				} 
-				catch (InterruptedException e)
-				{
-					System.out.println("Could not connect. Thread interrupted.");
-				} 
-			}
-			
+					
 			String handshake;
 			TCP_out.println("Connect");
 			try 
 			{
 				while((handshake = TCP_input.readLine()) != null)
 				{
-					System.out.println(handshake);
-					if(handshake.equals("ACK"))
+					if(handshake.contains("ACK0"))
 					{
+						TCP_out.println("ACK1 "+HostListener.PORT);
 						lock = true;
 						System.out.println("Connection established");
 					}

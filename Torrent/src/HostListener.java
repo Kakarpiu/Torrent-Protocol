@@ -3,7 +3,7 @@ import java.net.*;
 
 public class HostListener extends Thread{
 
-	private int port;
+	static int PORT;
 	
 	// TCP Socket
 	private ServerSocket serverSocket = null;
@@ -17,7 +17,7 @@ public class HostListener extends Thread{
 	
 	private HostListener(int port)
 	{
-		this.port = port;
+		PORT = port;
 		try 
 		{
 			serverSocket = new ServerSocket(port);
@@ -48,6 +48,7 @@ public class HostListener extends Thread{
 			try 
 			{
 				clientSocket = serverSocket.accept();
+				clientSocket.setSoTimeout(15000);
 				receive();
 			}
 			catch (IOException e) 
@@ -78,7 +79,7 @@ public class HostListener extends Thread{
 			{
 				if((handshake.equals("Connect")) && (Connection.lock == false))	
 				{
-					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ACK to accept connection or NAK to decline");
+					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ack to accept connection or anything else to decline");
 					
 					synchronized (instance)
 					{
@@ -87,32 +88,47 @@ public class HostListener extends Thread{
 					
 					if(answer.equals("ACK"))
 					{
-						UserInterface.peer = Connection.getInstance(clientSocket.getInetAddress().toString(), clientSocket.getPort());
-						UserInterface.peer.lock = true;
-						System.out.println("Connection established");
-						listenerOUT.println("ACK");
-						clientSocket.close();
+						listenerOUT.println("ACK0");
+						String ack = "";
+						if((ack = listenerIN.readLine()).contains("ACK1"))
+						{
+							String[] args = ack.split("\\s");
+							int port = Integer.parseInt(args[1]);
+							System.out.println(clientSocket.getInetAddress().toString().substring(1)+" "+port);
+							UserInterface.peer = Connection.getInstance(clientSocket.getInetAddress().toString().substring(1), port);
+							Connection.lock = true;
+							clientSocket.close();
+							System.out.println("Connection established");
+							return;
+						}
 					}
 					else
 					{
 						clientSocket.close();
+						return;
 					}
 				}
+				
 				else if(handshake.equals("Disconnect"))
 				{
 					Connection.lock = false;
 					System.out.println("Peer has disconnected.");
 					clientSocket.close();
+					return;
 				}
+				
 				else if(handshake.equals("Get List"))
 				{
 					listenerOUT.println(fileList.sendFiles());
 					clientSocket.close();
+					return;
 				}
+				
 				else
 				{
 					listenerOUT.println("NAK");
 					clientSocket.close();
+					return;
 				}
 			}
 		}

@@ -54,30 +54,34 @@ public class UserInterface extends Thread{
 		
 		switch(commandName)
 		{	
-			case "CONNECT" : 
+			case "connect" : 
 			{
 				connect(arguments, argsCount); 
 				break;
 			}
-			case "ACK" : 
+			case "ack" : 
 			{
 				HostListener.ackConnection("ACK");
 				break;
 			}
-			case "DISCONNECT" :
+			case "disconnect" :
 			{
-				peer.disconnect();
+				disconnect();
 				break;
 			}
-			case "FILELIST" :
+			case "mylist" :
 			{
 				fileList.showFiles();
 				break;
 			}
-			case "GETLIST" :
+			case "getlist" :
 			{
 				peer.getFileList();
 				break;
+			}
+			case "push" :
+			{
+				
 			}
 				
 		}
@@ -125,9 +129,8 @@ public class UserInterface extends Thread{
 			System.out.println("Couldn't disconnect from peer, because no connection was established");
 	}
 	
-	public void transfer()
+	public void transfer(String cmd)
 	{
-		
 	}
 	
 }
