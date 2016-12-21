@@ -55,8 +55,12 @@ public class UserInterface extends Thread{
 			case "connect" : 
 			{
 				if(Connection.lock == true)
+				{
 					System.out.println("Connection already established to "+Connection.getIp()+":"+Connection.getPort()+
 							". Disconnect this connection to establish new");
+					return;
+				}	
+					
 				else if (argsCount != 3)
 				{
 					System.out.println("Wrong number of arguments. This command takes 2 arguments in form of. \nIP PORT ");
@@ -70,6 +74,12 @@ public class UserInterface extends Thread{
 			case "ack" : 
 			{
 				HostListener.ackConnection("ACK");
+				break;
+			}
+			
+			case "nak" :
+			{
+				HostListener.ackConnection("NAK");
 				break;
 			}
 			
@@ -90,7 +100,10 @@ public class UserInterface extends Thread{
 			
 			case "getlist" :
 			{
-				peer.getFileList();
+				if(Connection.lock == true)
+					peer.getFileList();
+				else 
+					System.out.println("Couldn't get list from peer, because no connection was established");
 				break;
 			}
 			
@@ -98,20 +111,34 @@ public class UserInterface extends Thread{
 			{
 				if(Connection.lock == true)
 				{
-					if(argsCount != 2)
+					int index = 0;
+					File file = null;
+					
+					try
 					{
-						File tmp = fileList.getFile(arguments[1]);
-						if(tmp != null)
-							transfer("push", tmp);
-						else
-							System.out.println("No such file");
+						index = Integer.parseInt(arguments[1]);
+						file = fileList.getFile(index);
+						System.out.println(file.getName());
 					}
+					catch (NumberFormatException e)
+					{
+						e.printStackTrace();
+					}
+				
+					if(file != null)
+						peer.push(file);
+					else
+						System.out.println("No such file");
 				}
 				else
 					System.out.println("You can's push file because no connection is established.");
 				break;
 			}
-				
+			
+			case "pull" :
+			{
+				break;
+			}
 		}
 	}
 	
@@ -132,11 +159,4 @@ public class UserInterface extends Thread{
 		}
 	
 	}
-	
-	public void transfer(String cmd, File file)
-	{
-		if(cmd.equals("push"))
-			peer.push(file);
-	}
-	
 }

@@ -74,19 +74,26 @@ public class HostListener extends Thread{
 			listenerIN = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			listenerOUT = new PrintWriter(clientSocket.getOutputStream(), true);
 			
-			String handshake;
-			while( (handshake = listenerIN.readLine()) != null)
+			String handshake = listenerIN.readLine();
+			
+			switch(handshake)
 			{
-				if((handshake.equals("Connect")) && (Connection.lock == false))	
+				case "Connect" :
 				{
-					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ack to accept connection or anything else to decline");
+					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ack to accept connection or nak to decline");
 					
 					synchronized (instance)
 					{
-						wait();
+						wait(15000);
 					}
 					
-					if(answer.equals("ACK"))
+					if(answer == null)
+					{
+						System.out.println("User response timeout.");
+						clientSocket.close();
+					}
+					
+					else if(answer.equals("ACK"))
 					{
 						listenerOUT.println("ACK0");
 						String ack = "";
@@ -99,36 +106,60 @@ public class HostListener extends Thread{
 							Connection.lock = true;
 							clientSocket.close();
 							System.out.println("Connection established");
-							return;
 						}
 					}
 					else
 					{
+						System.out.println("Connection decliend");
 						clientSocket.close();
-						return;
 					}
+					break;
 				}
 				
-				else if(handshake.equals("Disconnect"))
+				case "Disconnect" :
 				{
 					Connection.lock = false;
 					System.out.println("Peer has disconnected.");
 					clientSocket.close();
-					return;
+					break;
 				}
 				
-				else if(handshake.equals("Get List"))
+				case "Get List" :
 				{
 					listenerOUT.println(fileList.sendFiles());
 					clientSocket.close();
-					return;
+					break;
 				}
 				
-				else
+				case "Push" :
+				{
+					String name = listenerIN.readLine();
+					String size = listenerIN.readLine();
+					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" wants to push a file "+name+
+							" with size of "+size+" bytes. Type ack to to accept, or antything else to decline.");
+
+					synchronized (instance)
+					{
+						wait(15000);
+					}
+					
+					if(answer.equals("ACK"))
+					{
+						// What ip to give here, and how to receive files
+						FileTransfer ft = new FileTransfer();
+						listenerOUT.println("ACK");
+						
+					}
+					else
+						listenerOUT.println("NAK");
+					
+					
+				}
+				default :
 				{
 					listenerOUT.println("NAK");
 					clientSocket.close();
-					return;
+					break;
 				}
 			}
 		}

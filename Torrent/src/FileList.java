@@ -93,14 +93,8 @@ public class FileList {
 		return list;
 	}
 	
-	public File getFile(String name)
+	public File getFile(int index)
 	{
-		File file = null;
-		for(File f : fileList)
-		{
-			if(f.getName().equals(name))
-				file = f;
-		}
-		return file;
+		return fileList.get(index);
 	}
 }

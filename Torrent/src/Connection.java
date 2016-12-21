@@ -71,6 +71,9 @@ public class Connection {
 			catch (IOException e) 
 			{	
 				System.out.println("Socket closed."); 
+				TCP_out.close();
+				TCP_input.close();
+				socket.close();
 			}
 			
 		} 
@@ -82,36 +85,33 @@ public class Connection {
 	
 	public void disconnect()
 	{
-		try {
+		try
+		{
 			Socket socket = new Socket(ip, port);
 			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
 			TCP_out.println("Disconnect");
 			lock = false;
-		} catch (IOException e) {
+		} 
+		catch (IOException e) 
+		{
 			e.printStackTrace();
 		}
-		
 	}
 	
 	public void getFileList()
 	{
 		try 
 		{
-			if(lock)
+			Socket socket = new Socket(ip, port);
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out.println("Get List");
+			String response;
+			while((response = in.readLine()) != null)
 			{
-				Socket socket = new Socket(ip, port);
-				PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				out.println("Get List");
-				String response;
-				while((response = in.readLine()) != null)
-				{
-					System.out.println(response);
-				}
-				socket.close();
+				System.out.println(response);
 			}
-			else
-				System.out.println("No connection established");
+			socket.close();
 		} 
 		catch (IOException e) 
 		{
@@ -121,7 +121,9 @@ public class Connection {
 	
 	public void push(File file)
 	{
-		transfers.add(new FileTransfer(ip, port, file)); 
+		FileTransfer ft = new FileTransfer(ip, port, file, FileTransfer.command.PUSH);
+		transfers.add(ft);
+		ft.start();
 	}
 	
 }
