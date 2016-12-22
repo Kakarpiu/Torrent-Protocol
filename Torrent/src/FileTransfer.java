@@ -8,35 +8,25 @@ public class FileTransfer extends Thread{
 	
 	private PrintWriter socketOUT = null;
 	private BufferedReader socketIN = null;
-	private OutputStream send = null;
 	
-	private FileInputStream fileIn = null;
+	private OutputStream send = null;
+	private InputStream receive = null;
+	
+	private FileInputStream fileIN = null;
+	private FileOutputStream fileOUT = null;
 	private File file = null;
 	
-	private int n = 1;
+	private int n = 0;
 	private command cmd;
 	enum command{PUSH, PULL, RECEIVE};
 	
-	private int bufferSize = 8*1024;
-	private byte[] buff = new byte[bufferSize];
+	private byte[] buffer = new byte[8*1024];
 	
-	public FileTransfer(String ip, int port, File file, command cmd)
+	public FileTransfer(Socket socket, File file, command cmd)
 	{
-		try 
-		{
-			socket.setSoTimeout(15000);
-			socket.connect(new InetSocketAddress(ip, port));
-			send = socket.getOutputStream();
-			socketOUT = new PrintWriter(socket.getOutputStream(), true);
-			socketIN = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			fileIn = new FileInputStream(file);
-			this.file = file;
-			this.cmd = cmd;
-		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
+		this.socket = socket;
+		this.file = file;
+		this.cmd = cmd;
 	}
 	
 	public void run()
@@ -45,34 +35,58 @@ public class FileTransfer extends Thread{
 			push();
 		else if(cmd == command.PULL)
 			pull();
+		else if(cmd == command.RECEIVE)
+			receive();
 	}
 	
 	public void push()
 	{
 		try 
 		{
-			socketOUT.println("Push");
-			socketOUT.println(file.getName());
-			socketOUT.println(file.length());
-					
-			if(socketIN.readLine().equals("ACK"))
+			
+			fileIN = new FileInputStream(file);
+			send = socket.getOutputStream();
+				
+			int count;
+			System.out.println("Before sending");
+			while((count = fileIN.read(buffer)) > 0)
 			{
-				while((fileIn.read(buff, bufferSize*n, bufferSize)) > -1)
-				{
-					send.write(buff);
-					n++;
-				}
+				send.write(buffer, 0, count);
+				n++;
 			}
-			else
-			{
-				System.out.println("Peer declined to push file");
-			}
-		} 
+			System.out.println("File pushed");
+			
+			socket.close();
+		}
 		catch (IOException e) 
 		{
-			System.out.println("Disconnected");
+			e.printStackTrace();
 		}
 	 }
+	
+	public void receive()
+	{
+		try 
+		{
+			receive = socket.getInputStream();
+			fileOUT = new FileOutputStream(file);
+			System.out.println("Before receiving");
+			int count;
+			while((count = receive.read(buffer)) > 0)
+			{
+				fileOUT.write(buffer, 0, count);
+				n++;
+			}
+			System.out.println("File received");
+			
+			receive.close();
+			fileOUT.close();
+		}
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+	}
 	
 	public void pull()
 	{

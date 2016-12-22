@@ -13,16 +13,17 @@ public class Connection {
 	protected static ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
 	//	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
 	
-	private Connection(String ip, int port)
+	private Connection(String i, int p, int id)
 	{
-		this.ip = ip;
-		this.port = port;
+		ip = i;
+		port = p;
+		idnumber = id;
 	}
 	
-	public static Connection getInstance(String ip, int port)
+	public static Connection getInstance(String ip, int port, int idnumber)
 	{
 		if(instance == null)
-			instance = new Connection(ip, port);
+			instance = new Connection(ip, port, idnumber);
 		return instance;
 	}
 	
@@ -51,18 +52,16 @@ public class Connection {
 			TCP_out.println("Connect");
 			try 
 			{
-				while((handshake = TCP_input.readLine()) != null)
-				{
+				handshake = TCP_input.readLine();
 					if(handshake.contains("ACK0"))
-					{
-						TCP_out.println("ACK1 "+HostListener.PORT);
-						lock = true;
-						System.out.println("Connection established");
-					}
-					else
-					{
-						System.out.println("Can't establish connection");
-					}
+				{
+					TCP_out.println("ACK1 "+HostListener.PORT+" "+idnumber);
+					lock = true;
+					System.out.println("Connection established. ID number: "+idnumber);
+				}
+				else
+				{
+					System.out.println("Can't establish connection");
 				}
 				TCP_out.close();
 				TCP_input.close();
@@ -87,9 +86,12 @@ public class Connection {
 	{
 		try
 		{
-			Socket socket = new Socket(ip, port);
+			Socket socket = new Socket();
+			socket.setSoTimeout(15000);
+			socket.connect(new InetSocketAddress(ip, port));
 			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
 			TCP_out.println("Disconnect");
+			socket.close();
 			lock = false;
 		} 
 		catch (IOException e) 
@@ -119,11 +121,35 @@ public class Connection {
 		}
 	}
 	
+	
 	public void push(File file)
 	{
-		FileTransfer ft = new FileTransfer(ip, port, file, FileTransfer.command.PUSH);
-		transfers.add(ft);
-		ft.start();
+		try 
+		{
+			
+			Socket socket = new Socket();
+			socket.setSoTimeout(15000);
+			socket.connect(new InetSocketAddress(ip, port));
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			
+			out.println("Push");
+			out.println(file.getName());
+			out.println(file.length());
+
+			int idnumber = 0;
+			
+			if(in.readLine().equals("ACK"))
+				idnumber = Integer.parseInt(in.readLine());
+		
+			socket.close();
+			
+		} 
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+;
 	}
 	
 }

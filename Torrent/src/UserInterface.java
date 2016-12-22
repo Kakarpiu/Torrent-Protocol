@@ -54,7 +54,7 @@ public class UserInterface extends Thread{
 		{	
 			case "connect" : 
 			{
-				if(Connection.lock == true)
+				if(peer.lock == true)
 				{
 					System.out.println("Connection already established to "+Connection.getIp()+":"+Connection.getPort()+
 							". Disconnect this connection to establish new");
@@ -63,11 +63,25 @@ public class UserInterface extends Thread{
 					
 				else if (argsCount != 3)
 				{
-					System.out.println("Wrong number of arguments. This command takes 2 arguments in form of. \nIP PORT ");
+					System.out.println("Wrong number of arguments. This command takes 2 arguments in form of. \nconnect ip port");
 					return;
 				}
 				else
-					connect(arguments, argsCount); 
+					{
+						String ip = arguments[1];
+						int port;
+						int idnumber = (int)(Math.random() * 100000);
+						try
+						{
+							port = Integer.parseInt(arguments[2]);
+							peer = Connection.getInstance(ip, port, idnumber);
+							peer.connect();
+						}
+						catch (NumberFormatException e ) 
+						{ 
+							System.out.println("Port number is not Integer!"); 
+						}
+					}
 				break;
 			}
 			
@@ -85,7 +99,7 @@ public class UserInterface extends Thread{
 			
 			case "disconnect" :
 			{
-				if(Connection.lock == true)
+				if(peer.lock == true)
 					peer.disconnect();
 				else
 					System.out.println("Couldn't disconnect from peer, because no connection was established");
@@ -100,7 +114,7 @@ public class UserInterface extends Thread{
 			
 			case "getlist" :
 			{
-				if(Connection.lock == true)
+				if(peer.lock == true)
 					peer.getFileList();
 				else 
 					System.out.println("Couldn't get list from peer, because no connection was established");
@@ -109,7 +123,7 @@ public class UserInterface extends Thread{
 			
 			case "push" :
 			{
-				if(Connection.lock == true)
+				if(Connection.lock == true && argsCount == 2)
 				{
 					int index = 0;
 					File file = null;
@@ -118,20 +132,18 @@ public class UserInterface extends Thread{
 					{
 						index = Integer.parseInt(arguments[1]);
 						file = fileList.getFile(index);
-						System.out.println(file.getName());
 					}
 					catch (NumberFormatException e)
 					{
-						e.printStackTrace();
+						System.out.println("Wrong argument");
 					}
-				
 					if(file != null)
 						peer.push(file);
 					else
 						System.out.println("No such file");
 				}
-				else
-					System.out.println("You can's push file because no connection is established.");
+				if(argsCount != 2)
+					System.out.println("Wrong number of arguments. This command takes 1 arguments in form of. \npush index");
 				break;
 			}
 			
@@ -140,23 +152,5 @@ public class UserInterface extends Thread{
 				break;
 			}
 		}
-	}
-	
-	public void connect(String[] arguments, int argsCount)
-	{		
-		String ip = arguments[1];
-		int port;
-		try
-		{
-			port = Integer.parseInt(arguments[2]);
-			peer = Connection.getInstance(ip, port);
-			peer.connect();
-		}
-		catch (NumberFormatException e ) 
-		{ 
-			System.out.println("Port number is not Integer!"); 
-			return;
-		}
-	
 	}
 }
