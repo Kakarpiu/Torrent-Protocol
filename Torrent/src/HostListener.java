@@ -159,6 +159,11 @@ public class HostListener extends Thread{
 						number = (int)(Math.random()*10000000);
 						listenerOUT.println(number);
 						clientSocket.close();
+						while(true)
+						{
+							clientSocket = serverSocket.accept();
+							FileTransfer ft = new FileTransfer(clientSocket, );
+						}
 					}
 					if(answer.equals("NAK"))
 					{

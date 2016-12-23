@@ -43,7 +43,6 @@ public class FileTransfer extends Thread{
 	{
 		try 
 		{
-			
 			fileIN = new FileInputStream(file);
 			send = socket.getOutputStream();
 				
