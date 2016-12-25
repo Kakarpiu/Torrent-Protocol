@@ -121,29 +121,46 @@ public class UserInterface extends Thread{
 				break;
 			}
 			
+			case "timeout" :
+			{
+				try
+				{
+					int tmp = Integer.parseInt(arguments[1]);
+				}
+				catch(NumberFormatException e)
+				{
+					System.out.println("");
+				}
+			}
 			case "push" :
 			{
-				if(Connection.lock == true && argsCount == 2)
+				if(Connection.lock == true && argsCount > 1)
 				{
-					int index = 0;
-					File file = null;
+					ArrayList<File> files = new ArrayList<File>();
 					
 					try
 					{
-						index = Integer.parseInt(arguments[1]);
-						file = fileList.getFile(index);
+						for(int i = 1; i<argsCount; i++)
+						{
+							int tmp = Integer.parseInt(arguments[i]);
+							
+							if(fileList.getFile(tmp) != null)
+								files.add(fileList.getFile(tmp));
+							else
+							{
+								System.out.println("No file with index: "+tmp);
+							}
+						}
+						File[] f = files.toArray(new File[files.size()]);
+						peer.push(f);
 					}
 					catch (NumberFormatException e)
 					{
 						System.out.println("Wrong argument");
 					}
-					if(file != null)
-						peer.push(file);
-					else
-						System.out.println("No such file");
 				}
-				if(argsCount != 2)
-					System.out.println("Wrong number of arguments. This command takes 1 arguments in form of. \npush index");
+				if(argsCount < 2)
+					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npush index...");
 				break;
 			}
 			

@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class HostListener extends Thread{
 
@@ -16,6 +17,7 @@ public class HostListener extends Thread{
 	
 	private static HostListener instance = null;
 	private int number;
+	private int TIMEOUT = 30000;
 	
 	private HostListener(int port)
 	{
@@ -42,6 +44,11 @@ public class HostListener extends Thread{
 		return instance;
 	}
 	
+	public void setTimeout(int i)
+	{
+		TIMEOUT = i*1000;
+	}
+	
 	@Override
 	public void run() 
 	{
@@ -50,7 +57,7 @@ public class HostListener extends Thread{
 			try 
 			{
 				clientSocket = serverSocket.accept();
-				clientSocket.setSoTimeout(15000);
+				clientSocket.setSoTimeout(TIMEOUT);
 				receive();
 			}
 			catch (IOException e) 
@@ -137,10 +144,20 @@ public class HostListener extends Thread{
 				
 				case "Push" :
 				{
-					String name = listenerIN.readLine();
-					String size = listenerIN.readLine();
-					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" wants to push a file "+name+
-							" with size of "+size+" bytes. Type ack to to accept, nak to decline.");
+					
+					int filesCount = Integer.parseInt(listenerIN.readLine());
+					String[] filesNames = new String[filesCount];
+					
+					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" wants to push a files: ");
+					for(int i = 0; i<filesCount; i++)
+					{
+						String name = listenerIN.readLine();
+						String size = listenerIN.readLine();
+						filesNames[i] = name;
+						System.out.println(name+" with size of "+size+" bytes.");
+					}
+					
+					System.out.println("Type ack to accept or nak to decline");
 
 					synchronized (instance)
 					{
@@ -159,8 +176,11 @@ public class HostListener extends Thread{
 						listenerOUT.println("ACK "+transferport);
 						clientSocket.close();
 						
-						FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+name), FileTransfer.command.RECEIVE);
-						ft.start();
+						for(int i = 0; i<filesCount; i++)
+						{
+							FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesNames[i]), FileTransfer.command.RECEIVE);
+							ft.start();
+						}
 					}
 					if(answer.equals("NAK"))
 					{

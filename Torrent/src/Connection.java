@@ -2,6 +2,7 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
+
 public class Connection {
 	
 	private static Connection instance = null;	
@@ -9,6 +10,7 @@ public class Connection {
 	private static int port;
 	private static int idnumber;
 	protected static boolean lock = false;
+	private int TIMEOUT = 30000;
 		
 	// FILETRANSFER LIST
 	protected static ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
@@ -38,12 +40,17 @@ public class Connection {
 		return port;
 	}	
 	
+	public void setTimeout(int i)
+	{
+		TIMEOUT = i*1000;
+	}
+	
 	public void connect()
 	{
 		try 
 		{
 			Socket socket = new Socket();
-			socket.setSoTimeout(15000);
+			socket.setSoTimeout(TIMEOUT);
 			socket.connect(new InetSocketAddress(ip, port));
 			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader TCP_input = new BufferedReader(
@@ -88,7 +95,7 @@ public class Connection {
 		try
 		{
 			Socket socket = new Socket();
-			socket.setSoTimeout(15000);
+			socket.setSoTimeout(TIMEOUT);
 			socket.connect(new InetSocketAddress(ip, port));
 			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
 			TCP_out.println("Disconnect");
@@ -123,28 +130,39 @@ public class Connection {
 	}
 	
 	
-	public void push(File file)
+	public void push(File[] file)
 	{
 		try 
 		{
 			
 			Socket socket = new Socket();
-			socket.setSoTimeout(15000);
+			socket.setSoTimeout(TIMEOUT);
 			socket.connect(new InetSocketAddress(ip, port));
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			
 			out.println("Push");
-			out.println(file.getName());
-			out.println(file.length());
+			out.println(file.length);
+			
+			for(int i = 0; i<file.length; i++)
+			{
+				out.println(file[i].getName());
+				out.println(file[i].length());
+			}
 			
 			String ans = in.readLine();
 			String[] args = ans.split("\\s");
+			
 			if(args[0].equals("ACK"))
 			{
 				int transferport = Integer.parseInt(args[1]);
-				FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
-				ft.start();
+				
+				for(int i = 0; i<file.length; i++)
+				{
+					FileTransfer ft = new FileTransfer(new Socket(ip, transferport+i), file[i], FileTransfer.command.PUSH);
+					ft.start();
+				}
+				
 			}
 			else if(args[0].equals("NAK"))
 			{
