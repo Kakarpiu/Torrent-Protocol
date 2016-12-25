@@ -4,18 +4,20 @@ import java.net.*;
 
 public class FileTransfer extends Thread{
 	
+	// Sockets 
 	private Socket socket = null;
+	private ServerSocket receiveSock = null;
+	private int transferport = 0;
 	
-	private PrintWriter socketOUT = null;
-	private BufferedReader socketIN = null;
-	
+	// Transfer streams
 	private OutputStream send = null;
 	private InputStream receive = null;
 	
+	// File streams
 	private FileInputStream fileIN = null;
 	private FileOutputStream fileOUT = null;
 	private File file = null;
-	
+
 	private int n = 0;
 	private command cmd;
 	enum command{PUSH, PULL, RECEIVE};
@@ -29,6 +31,13 @@ public class FileTransfer extends Thread{
 		this.cmd = cmd;
 	}
 	
+	public FileTransfer(int port, File file, command cmd)
+	{
+		transferport = port;
+		this.file = file;
+		this.cmd = cmd;
+	}
+	
 	public void run()
 	{
 		if(cmd == command.PUSH)
@@ -36,7 +45,17 @@ public class FileTransfer extends Thread{
 		else if(cmd == command.PULL)
 			pull();
 		else if(cmd == command.RECEIVE)
-			receive();
+		{
+			try {
+				ServerSocket receiveSock = new ServerSocket(transferport) ;
+				socket = receiveSock.accept();
+				receive();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void push()
@@ -47,7 +66,7 @@ public class FileTransfer extends Thread{
 			send = socket.getOutputStream();
 				
 			int count;
-			System.out.println("Before sending");
+			System.out.println("Pushing file: "+file.getName());
 			while((count = fileIN.read(buffer)) > 0)
 			{
 				send.write(buffer, 0, count);
@@ -69,7 +88,7 @@ public class FileTransfer extends Thread{
 		{
 			receive = socket.getInputStream();
 			fileOUT = new FileOutputStream(file);
-			System.out.println("Before receiving");
+			System.out.println("Receiving file "+file.getName());
 			int count;
 			while((count = receive.read(buffer)) > 0)
 			{

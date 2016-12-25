@@ -7,6 +7,7 @@ public class Connection {
 	private static Connection instance = null;	
 	private static String ip;
 	private static int port;
+	private static int idnumber;
 	protected static boolean lock = false;
 		
 	// FILETRANSFER LIST
@@ -136,13 +137,19 @@ public class Connection {
 			out.println("Push");
 			out.println(file.getName());
 			out.println(file.length());
-
-			int idnumber = 0;
 			
-			if(in.readLine().equals("ACK"))
-				idnumber = Integer.parseInt(in.readLine());
-		
-			socket.close();
+			String ans = in.readLine();
+			String[] args = ans.split("\\s");
+			if(args[0].equals("ACK"))
+			{
+				int transferport = Integer.parseInt(args[1]);
+				FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
+				ft.start();
+			}
+			else if(args[0].equals("NAK"))
+			{
+				System.out.println("Host decilend receiving file");
+			}
 			
 		} 
 		catch (IOException e)

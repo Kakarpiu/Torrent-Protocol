@@ -140,7 +140,7 @@ public class HostListener extends Thread{
 					String name = listenerIN.readLine();
 					String size = listenerIN.readLine();
 					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" wants to push a file "+name+
-							" with size of "+size+" bytes. Type ack to to accept, or antything else to decline.");
+							" with size of "+size+" bytes. Type ack to to accept, nak to decline.");
 
 					synchronized (instance)
 					{
@@ -155,15 +155,12 @@ public class HostListener extends Thread{
 					
 					if(answer.equals("ACK"))
 					{
-						listenerOUT.println("ACK");
-						number = (int)(Math.random()*10000000);
-						listenerOUT.println(number);
+						int transferport = (int)(Math.random()*40000)+20000;
+						listenerOUT.println("ACK "+transferport);
 						clientSocket.close();
-						while(true)
-						{
-							clientSocket = serverSocket.accept();
-							FileTransfer ft = new FileTransfer(clientSocket, );
-						}
+						
+						FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+name), FileTransfer.command.RECEIVE);
+						ft.start();
 					}
 					if(answer.equals("NAK"))
 					{
