@@ -100,7 +100,10 @@ public class UserInterface extends Thread{
 			case "disconnect" :
 			{
 				if(peer.lock == true)
+				{
 					peer.disconnect();
+					System.out.println("Disconnected");
+				}
 				else
 					System.out.println("Couldn't disconnect from peer, because no connection was established");
 				break;
@@ -137,35 +140,54 @@ public class UserInterface extends Thread{
 				if(Connection.lock == true && argsCount > 1)
 				{
 					ArrayList<File> files = new ArrayList<File>();
-					
-					try
+										
+					for(int i = 1; i<argsCount; i++)
 					{
-						for(int i = 1; i<argsCount; i++)
+						try
 						{
 							int tmp = Integer.parseInt(arguments[i]);
-							
 							if(fileList.getFile(tmp) != null)
 								files.add(fileList.getFile(tmp));
 							else
-							{
 								System.out.println("No file with index: "+tmp);
-							}
 						}
-						File[] f = files.toArray(new File[files.size()]);
-						peer.push(f);
+						catch (NumberFormatException e)
+						{
+							System.out.println("Argument: "+arguments[i]+" is not a number");
+						}
 					}
-					catch (NumberFormatException e)
-					{
-						System.out.println("Wrong argument");
-					}
+					File[] f = files.toArray(new File[files.size()]);
+					peer.push(f);
 				}
 				if(argsCount < 2)
 					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npush index...");
 				break;
+					
 			}
 			
 			case "pull" :
 			{
+				if(Connection.lock == true && argsCount > 1)
+				{
+					ArrayList<Integer> files = new ArrayList<Integer>();
+					
+					for(int i = 0; i<argsCount; i++)
+					{
+						try
+						{
+							int tmp = Integer.parseInt(arguments[i]);
+							files.add(tmp);
+						}
+						catch(NumberFormatException e)
+						{
+							System.out.println("Argument: "+arguments[i]+" is not a number");
+						}
+					}
+					Integer[] f = files.toArray(new Integer[files.size()]);
+					peer.pull(f);
+				}
+				if(argsCount < 2)
+					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npull index...");
 				break;
 			}
 		}

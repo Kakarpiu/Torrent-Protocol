@@ -112,7 +112,9 @@ public class Connection {
 	{
 		try 
 		{
-			Socket socket = new Socket(ip, port);
+			Socket socket = new Socket();
+			socket.setSoTimeout(TIMEOUT);
+			socket.connect(new InetSocketAddress(ip, port));
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out.println("Get List");
@@ -130,11 +132,10 @@ public class Connection {
 	}
 	
 	
-	public void push(File[] file)
+	public void push(File[] files)
 	{
 		try 
 		{
-			
 			Socket socket = new Socket();
 			socket.setSoTimeout(TIMEOUT);
 			socket.connect(new InetSocketAddress(ip, port));
@@ -142,12 +143,12 @@ public class Connection {
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			
 			out.println("Push");
-			out.println(file.length);
+			out.println(files.length);
 			
-			for(int i = 0; i<file.length; i++)
+			for(int i = 0; i<files.length; i++)
 			{
-				out.println(file[i].getName());
-				out.println(file[i].length());
+				out.println(files[i].getName());
+				out.println(files[i].length());
 			}
 			
 			String ans = in.readLine();
@@ -157,9 +158,9 @@ public class Connection {
 			{
 				int transferport = Integer.parseInt(args[1]);
 				
-				for(int i = 0; i<file.length; i++)
+				for(int i = 0; i<files.length; i++)
 				{
-					FileTransfer ft = new FileTransfer(new Socket(ip, transferport+i), file[i], FileTransfer.command.PUSH);
+					FileTransfer ft = new FileTransfer(new Socket(ip, transferport+i), files[i], FileTransfer.command.PUSH);
 					ft.start();
 				}
 				
@@ -174,7 +175,48 @@ public class Connection {
 		{
 			e.printStackTrace();
 		}
-;
+	}
+	
+	public void pull(Integer[] files)
+	{
+		try
+		{
+			Socket socket = new Socket();
+			socket.setSoTimeout(TIMEOUT);
+			socket.connect(new InetSocketAddress(ip, port));
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			
+			out.println("Pull");
+			out.println(files.length);
+			
+			ArrayList<File> filesToRcv = new ArrayList<File>();
+			
+			for(int i = 0; i<files.length; i++)
+			{
+				out.println(files[i]);
+				if(in.readLine().equals("ACK")) 
+				{
+					filesToRcv.add(new File(in.readLine()));
+				}
+				if(in.readLine().equals("NAK"))
+					System.out.println("There is no file with index: "+files[i]);
+			}
+			
+			int transferport = (int)(Math.random()*40000)+20000;
+			out.println("ACK "+transferport);
+			socket.close();
+				
+			for(int i = 0; i<filesToRcv.size(); i++)
+			{
+				FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesToRcv.get(i)), FileTransfer.command.RECEIVE);
+				ft.start();
+			}
+		}
+		catch (IOException e)
+		{
+			
+		}
 	}
 	
 }

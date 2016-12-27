@@ -146,8 +146,7 @@ public class HostListener extends Thread{
 				{
 					
 					int filesCount = Integer.parseInt(listenerIN.readLine());
-					String[] filesNames = new String[filesCount];
-					int ind = 0;
+					ArrayList<String> filesNames = new ArrayList<String>();
 					
 					for(int i = 0; i<filesCount; i++)
 					{
@@ -166,8 +165,7 @@ public class HostListener extends Thread{
 						
 						if(answer.equals("ACK"))
 						{
-							filesNames[ind] = name;
-							ind++;
+							filesNames.add(name);
 						}
 						if(answer.equals("NAK"))
 						{
@@ -175,38 +173,44 @@ public class HostListener extends Thread{
 						}
 					}
 					
-//					System.out.println("Type ack to accept or nak to decline");
-//
-//					synchronized (instance)
-//					{
-//						wait(15000);
-//					}
-//					
-//					if(answer == null)
-//					{
-//						System.out.println("User response timeout.");
-//						clientSocket.close();
-//					}
-//					
-//					if(answer.equals("ACK"))
-//					{
-						int transferport = (int)(Math.random()*40000)+20000;
-						listenerOUT.println("ACK "+transferport);
-						clientSocket.close();
+					int transferport = (int)(Math.random()*40000)+20000;
+					listenerOUT.println("ACK "+transferport);
+					clientSocket.close();
 						
-						for(int i = 0; i<filesCount; i++)
-						{
-							FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesNames[i]), FileTransfer.command.RECEIVE);
-							ft.start();
-						}
+					for(int i = 0; i<filesNames.size(); i++)
+					{
+						FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesNames.get(i)), FileTransfer.command.RECEIVE);
+						ft.start();
 					}
-//					if(answer.equals("NAK"))
-//					{
-//						listenerOUT.println("NAK");
-//						clientSocket.close();
-//					}
 					break;
 				}
+				
+				case "Pull" :
+				{
+					int filesCount = Integer.parseInt(listenerIN.readLine());
+					ArrayList<File> filesIndx = new ArrayList<File>();
+							
+					for(int i = 0; i<filesCount; i++)
+					{
+						int tmp = Integer.parseInt(listenerIN.readLine());
+						if(fileList.getFile(tmp) != null)
+						{
+							filesIndx.add(fileList.getFile(tmp));
+							listenerOUT.println("ACK");
+							listenerOUT.println(fileList.getFile(tmp).getName());
+						}
+						else
+						{
+							listenerOUT.println("NAK");
+						}
+					}
+					
+					
+					
+					break;
+				}
+					
+			}
 		}
 		
 		catch (IOException e) 
