@@ -95,6 +95,14 @@ public class FileList {
 	
 	public File getFile(int index)
 	{
-		return fileList.get(index);
+		try
+		{
+			return fileList.get(index);
+		}
+		catch(IndexOutOfBoundsException e)
+		{
+			return null;
+		}
+		
 	}
 }

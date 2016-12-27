@@ -147,31 +147,49 @@ public class HostListener extends Thread{
 					
 					int filesCount = Integer.parseInt(listenerIN.readLine());
 					String[] filesNames = new String[filesCount];
+					int ind = 0;
 					
-					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" wants to push a files: ");
 					for(int i = 0; i<filesCount; i++)
 					{
 						String name = listenerIN.readLine();
 						String size = listenerIN.readLine();
-						filesNames[i] = name;
-						System.out.println(name+" with size of "+size+" bytes.");
+						System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" wants to push file: "+name+" with size of "+size+" bytes. Type ack to accept or nak to decline");
+						synchronized (instance)
+						{
+							wait(15000);
+						}
+						
+						if(answer == null)
+						{
+							System.out.println("User response timeout. File declined");
+						}
+						
+						if(answer.equals("ACK"))
+						{
+							filesNames[ind] = name;
+							ind++;
+						}
+						if(answer.equals("NAK"))
+						{
+							listenerOUT.println("NAK");
+						}
 					}
 					
-					System.out.println("Type ack to accept or nak to decline");
-
-					synchronized (instance)
-					{
-						wait(15000);
-					}
-					
-					if(answer == null)
-					{
-						System.out.println("User response timeout.");
-						clientSocket.close();
-					}
-					
-					if(answer.equals("ACK"))
-					{
+//					System.out.println("Type ack to accept or nak to decline");
+//
+//					synchronized (instance)
+//					{
+//						wait(15000);
+//					}
+//					
+//					if(answer == null)
+//					{
+//						System.out.println("User response timeout.");
+//						clientSocket.close();
+//					}
+//					
+//					if(answer.equals("ACK"))
+//					{
 						int transferport = (int)(Math.random()*40000)+20000;
 						listenerOUT.println("ACK "+transferport);
 						clientSocket.close();
@@ -182,25 +200,13 @@ public class HostListener extends Thread{
 							ft.start();
 						}
 					}
-					if(answer.equals("NAK"))
-					{
-						listenerOUT.println("NAK");
-						clientSocket.close();
-					}
+//					if(answer.equals("NAK"))
+//					{
+//						listenerOUT.println("NAK");
+//						clientSocket.close();
+//					}
 					break;
 				}
-				
-				default :
-				{
-					if(Integer.parseInt(handshake) == number)
-					{
-						
-					}
-					listenerOUT.println("NAK");
-					clientSocket.close();
-					break;
-				}
-			}
 		}
 		
 		catch (IOException e) 
