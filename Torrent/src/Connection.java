@@ -194,15 +194,12 @@ public class Connection {
 			
 			for(int i = 0; i<files.length; i++)
 			{
-				System.out.println(files[i]);
 				out.println(files[i]);
 				String response = in.readLine();
 				if(response.equals("ACK")) 
 				{
-					System.out.println("Acknowledged ? in connection");
 					String fname = in.readLine();
 					filesToRcv.add(new File(fname));
-					System.out.println("Added file "+fname+" in connection");
 				}
 				else 
 					System.out.println("There is no file with index: "+files[i]);
