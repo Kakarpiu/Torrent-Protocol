@@ -194,23 +194,38 @@ public class Connection {
 			
 			for(int i = 0; i<files.length; i++)
 			{
+				System.out.println(files[i]);
 				out.println(files[i]);
-				if(in.readLine().equals("ACK")) 
+				String response = in.readLine();
+				if(response.equals("ACK")) 
 				{
-					filesToRcv.add(new File(in.readLine()));
+					System.out.println("Acknowledged ? in connection");
+					String fname = in.readLine();
+					filesToRcv.add(new File(fname));
+					System.out.println("Added file "+fname+" in connection");
 				}
-				if(in.readLine().equals("NAK"))
+				else 
 					System.out.println("There is no file with index: "+files[i]);
 			}
 			
-			int transferport = (int)(Math.random()*40000)+20000;
-			out.println("ACK "+transferport);
-			socket.close();
-				
-			for(int i = 0; i<filesToRcv.size(); i++)
+			if(!filesToRcv.isEmpty())
 			{
-				FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesToRcv.get(i)), FileTransfer.command.RECEIVE);
-				ft.start();
+				int transferport = (int)(Math.random()*40000)+20000;
+				
+				out.println("ACK "+transferport);
+				socket.close();
+					
+				for(int i = 0; i<filesToRcv.size(); i++)
+				{
+					FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesToRcv.get(i)), FileTransfer.command.RECEIVE);
+					ft.start();
+				}
+			}
+			else 
+			{
+				out.println("NAK");
+				System.out.println("None file index was correct.");
+				socket.close();
 			}
 		}
 		catch (IOException e)

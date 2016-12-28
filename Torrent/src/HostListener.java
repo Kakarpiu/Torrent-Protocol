@@ -188,6 +188,7 @@ public class HostListener extends Thread{
 				case "Pull" :
 				{
 					int filesCount = Integer.parseInt(listenerIN.readLine());
+					System.out.println(filesCount);
 					ArrayList<File> filesIndx = new ArrayList<File>();
 							
 					for(int i = 0; i<filesCount; i++)
@@ -205,7 +206,22 @@ public class HostListener extends Thread{
 						}
 					}
 					
+					String response = listenerIN.readLine();
 					
+					if(response.contains("ACK"))
+					{
+						String[] args = response.split("\\s");
+						int transferport = Integer.parseInt(args[1]);
+						clientSocket.close();
+						
+						for(int i = 0; i<filesIndx.size(); i++)
+						{
+							FileTransfer ft = new FileTransfer(new Socket(Connection.getIp(), transferport+i), filesIndx.get(i), FileTransfer.command.PUSH);
+							ft.start();
+						}
+					}
+					else
+						clientSocket.close();
 					
 					break;
 				}

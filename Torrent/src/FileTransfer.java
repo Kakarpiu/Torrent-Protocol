@@ -72,7 +72,7 @@ public class FileTransfer extends Thread{
 				send.write(buffer, 0, count);
 				n++;
 			}
-			System.out.println("File pushed");
+			System.out.println(file.getName()+" pushed");
 			
 			socket.close();
 		}
@@ -95,7 +95,7 @@ public class FileTransfer extends Thread{
 				fileOUT.write(buffer, 0, count);
 				n++;
 			}
-			System.out.println("File received");
+			System.out.println(file.getName()+" received");
 			
 			receive.close();
 			fileOUT.close();

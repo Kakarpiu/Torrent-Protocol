@@ -171,7 +171,7 @@ public class UserInterface extends Thread{
 				{
 					ArrayList<Integer> files = new ArrayList<Integer>();
 					
-					for(int i = 0; i<argsCount; i++)
+					for(int i = 1; i<argsCount; i++)
 					{
 						try
 						{
