@@ -20,7 +20,7 @@ public class FileTransfer extends Thread{
 
 	private int n = 0;
 	private command cmd;
-	enum command{PUSH, PULL, RECEIVE};
+	enum command{PUSH, RECEIVE};
 	
 	private byte[] buffer = new byte[8*1024];
 	
@@ -42,8 +42,6 @@ public class FileTransfer extends Thread{
 	{
 		if(cmd == command.PUSH)
 			push();
-		else if(cmd == command.PULL)
-			pull();
 		else if(cmd == command.RECEIVE)
 		{
 			try {
@@ -104,11 +102,6 @@ public class FileTransfer extends Thread{
 		{
 			e.printStackTrace();
 		}
-	}
-	
-	public void pull()
-	{
-		
 	}
 	
 	

@@ -4,42 +4,63 @@ import java.net.*;
 
 
 public class Connection {
-	
-	private static Connection instance = null;	
-	private static String ip;
-	private static int port;
-	private static int idnumber;
-	protected static boolean lock = false;
+
+	private InetAddress ip;
+	private int port;
+	private int idnumber;
 	private int TIMEOUT = 30000;
-		
+	private Socket connectionSocket = null;
+	private PrintWriter out = null;
+	private BufferedReader in = null;
+	
 	// FILETRANSFER LIST
-	protected static ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
+	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
 	//	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
 	
-	private Connection(String i, int p, int id)
+	public Connection(InetAddress i, int p, int id) // When connecting
 	{
 		ip = i;
 		port = p;
 		idnumber = id;
+		
+		try
+		{
+			connectionSocket.connect(ip, port);
+		}
 	}
 	
-	public static Connection getInstance(String ip, int port, int idnumber)
+	public Connection(int p, int id) // When receiving
 	{
-		if(instance == null)
-			instance = new Connection(ip, port, idnumber);
-		return instance;
+		ServerSocket listener;
+		try
+		{
+			listener = new ServerSocket(p);
+			connectionSocket = listener.accept();
+			try
+			{
+				out = new PrintWriter(connectionSocket.getOutputStream(), true);
+				in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+				idnumber = id;
+			}
+			catch (IOException e) { System.out.println("Couldn't creat streams."); }
+		} 
+		catch (IOException e) { System.out.println("Couldn't create socket."); }
 	}
 	
-	public static String getIp()
+	public String getIp()
 	{
 		return ip;
 	}
 	
-	public static int getPort()
+	public int getPort()
 	{
 		return port;
 	}	
 	
+	public int getId()
+	{
+		return idnumber;
+	}
 	public void setTimeout(int i)
 	{
 		TIMEOUT = i*1000;
@@ -47,60 +68,58 @@ public class Connection {
 	
 	public void connect()
 	{
-		try 
+		if(connectionSocket == null)
 		{
-			Socket socket = new Socket();
-			socket.setSoTimeout(TIMEOUT);
-			socket.connect(new InetSocketAddress(ip, port));
-			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
-			BufferedReader TCP_input = new BufferedReader(
-					new InputStreamReader(socket.getInputStream()));
-					
-			String handshake;
-			TCP_out.println("Connect");
+			try
+			{
+				connectionSocket = new Socket();
+				out = new PrintWriter(connectionSocket.getOutputStream(), true);
+				in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+				
+			} catch (IOException e)	{
+				System.out.println("Could not create socket.");
+			}
+			try
+			{
+				connectionSocket.setSoTimeout(TIMEOUT);
+				connectionSocket.connect(new InetSocketAddress(ip, port));
+			} catch (IOException e){
+				System.out.println("Could not connect.");
+			}
 			try 
 			{
-				handshake = TCP_input.readLine();
-					if(handshake.contains("ACK0"))
+				String handshake;
+				out.println("Connect");
+				
+				handshake = in.readLine();
+				if(handshake.contains("ACK0"))
 				{
-					TCP_out.println("ACK1 "+HostListener.PORT+" "+idnumber);
-					lock = true;
+					out.println("ACK1 "+HostListener.PORT+" "+idnumber);
 					System.out.println("Connection established. ID number: "+idnumber);
+					
 				}
-				else
+				
+				else if(handshake.equals("NAK"))
 				{
-					System.out.println("Can't establish connection");
+					System.out.println("Peer declined connection");
 				}
-				TCP_out.close();
-				TCP_input.close();
-				socket.close();
+				
 			} 
 			catch (IOException e) 
-			{	
-				System.out.println("Socket closed."); 
-				TCP_out.close();
-				TCP_input.close();
-				socket.close();
+			{
+				System.out.println("Error while connecting.");
 			}
-			
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
 		}
+		else
+			System.out.println("Connection to host with address: "+ip+" "+port+" is established");
 	}
 	
 	public void disconnect()
 	{
 		try
 		{
-			Socket socket = new Socket();
-			socket.setSoTimeout(TIMEOUT);
-			socket.connect(new InetSocketAddress(ip, port));
-			PrintWriter TCP_out = new PrintWriter(socket.getOutputStream(), true);
-			TCP_out.println("Disconnect");
-			socket.close();
-			lock = false;
+			out.println("Disconnect");
+			connectionSocket.close();
 		} 
 		catch (IOException e) 
 		{
@@ -112,18 +131,13 @@ public class Connection {
 	{
 		try 
 		{
-			Socket socket = new Socket();
-			socket.setSoTimeout(TIMEOUT);
-			socket.connect(new InetSocketAddress(ip, port));
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out.println("Get List");
 			String response;
+			
 			while((response = in.readLine()) != null)
 			{
 				System.out.println(response);
 			}
-			socket.close();
 		} 
 		catch (IOException e) 
 		{

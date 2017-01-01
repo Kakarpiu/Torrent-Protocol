@@ -7,10 +7,11 @@ public class UserInterface extends Thread{
 
 	private static UserInterface instance = null; 
 	protected static BufferedReader console;
-	protected static Connection peer;
+	protected static ArrayList<Connection> peers = new ArrayList<Connection>();
 	protected static boolean portEstablished = false;
 	private String argument;	
 	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
+	private int TIMEOUT = 30000;
 	
 	private UserInterface()
 	{
@@ -54,34 +55,56 @@ public class UserInterface extends Thread{
 		{	
 			case "connect" : 
 			{
-				if(peer.lock == true)
-				{
-					System.out.println("Connection already established to "+Connection.getIp()+":"+Connection.getPort()+
-							". Disconnect this connection to establish new");
-					return;
-				}	
-					
-				else if (argsCount != 3)
+				if (argsCount != 3)
 				{
 					System.out.println("Wrong number of arguments. This command takes 2 arguments in form of. \nconnect ip port");
 					return;
 				}
 				else
+				{
+					String ip = arguments[1];
+					int port;
+					int idnumber = (int)(Math.random() * 100000);
+					
+					try
 					{
-						String ip = arguments[1];
-						int port;
-						int idnumber = (int)(Math.random() * 100000);
+						Socket socket = new Socket();
+						PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+						BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+						
 						try
 						{
-							port = Integer.parseInt(arguments[2]);
-							peer = Connection.getInstance(ip, port, idnumber);
-							peer.connect();
-						}
-						catch (NumberFormatException e ) 
-						{ 
-							System.out.println("Port number is not Integer!"); 
-						}
-					}
+							socket.setSoTimeout(TIMEOUT);
+							socket.connect(new InetSocketAddress(ip, port));
+							try 
+							{
+								// First handshake
+								String handshake;
+								out.println("Connect");
+								
+								// Second handshake
+								handshake = in.readLine();
+								if(handshake.equals("ACK0"))
+								{
+									int portnumber = Integer.parseInt(in.readLine());
+									int idnumber = Integer.parseInt(in.readLine());
+									Connection newCon = new Connection(socket.getInetAddress(), portnumber, idnumber);
+									
+									out.println("ACK1 "+HostListener.PORT+" "+idnumber);
+									System.out.println("Connection established. ID number: "+idnumber);
+								}
+								else if(handshake.equals("NAK"))
+								{
+									System.out.println("Peer declined connection");
+								}
+								
+							}	
+							catch (IOException e){	System.out.println("Error while connecting."); }
+						}	
+						catch (IOException e){ System.out.println("Could not connect."); }
+					}	
+					catch (IOException e){ System.out.println("Could not create socket."); }
+				}
 				break;
 			}
 			

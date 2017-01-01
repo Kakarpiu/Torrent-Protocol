@@ -8,15 +8,11 @@ public class HostListener extends Thread{
 	
 	// TCP Socket
 	private ServerSocket serverSocket = null;
-	private Socket clientSocket = null;
-	private BufferedReader listenerIN = null;
-	private PrintWriter listenerOUT = null;
 	private static String answer;
 	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
-	private static Connection peer = null;
+	private static ArrayList<Connection> peer = null;
 	
 	private static HostListener instance = null;
-	private int number;
 	private int TIMEOUT = 30000;
 	
 	private HostListener(int port)
@@ -56,15 +52,29 @@ public class HostListener extends Thread{
 		{
 			try 
 			{
-				clientSocket = serverSocket.accept();
+				Socket clientSocket = serverSocket.accept();
 				clientSocket.setSoTimeout(TIMEOUT);
-				receive();
+				try 
+				{
+					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));;
+					PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
+					receive(clientSocket, in, out);
+				}
+				catch (IOException e) 
+				{
+					System.out.println("Could not create stream.");
+				}
+				finally
+				{
+					clientSocket.close();
+				}
 			}
 			catch (IOException e) 
 			{
-				e.printStackTrace();
-			}
-		}
+				System.out.println("Could not create socket.");
+			}	
+			
+		}	
 	}
 	
 	public static void ackConnection(String a)
@@ -76,37 +86,40 @@ public class HostListener extends Thread{
 		}
 	}
 	
-	public void receive()
+	public void receive(Socket socket, BufferedReader in, PrintWriter out)
 	{
-		try
+		// First handshake
+		String handshake = in.readLine();
+		
+		switch(handshake)
 		{
-			listenerIN = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			listenerOUT = new PrintWriter(clientSocket.getOutputStream(), true);
-			
-			String handshake = listenerIN.readLine();
-			
-			switch(handshake)
+			case "Connect" :
 			{
-				case "Connect" :
+				System.out.println("Peer with IP: "+socket.getInetAddress()+" is trying to connect. \nType ack to accept connection or nak to decline");
+				
+				synchronized (instance)
 				{
-					System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" is trying to connect. \nType ack to accept connection or nak to decline");
-					
-					synchronized (instance)
+					wait(15000);
+				}
+				
+				if(answer == null)
+				{
+					System.out.println("User response timeout.");
+					socket.close();
+				}
+				
+				else if(answer.equals("ACK"))
 					{
-						wait(15000);
-					}
-					
-					if(answer == null)
-					{
-						System.out.println("User response timeout.");
-						clientSocket.close();
-					}
-					
-					else if(answer.equals("ACK"))
-					{
-						listenerOUT.println("ACK0");
-						String ack = "";
-						if((ack = listenerIN.readLine()).contains("ACK1"))
+						// Second handshake
+						int portnumber = (int)(Math.random()*10000) + 50000;
+						int idnumber = (int)(Math.random()*1000000);
+						Connection newCon = new Connection(portnumber, idnumber);
+						out.println("ACK0");
+						out.println(portnumber);
+						out.println(idnumber);
+						
+						String ack= in.readLine();
+						if(ack.contains("ACK1"))
 						{
 							String[] args = ack.split("\\s");
 							int port = Integer.parseInt(args[1]);
