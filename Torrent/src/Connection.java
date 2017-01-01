@@ -72,70 +72,15 @@ public class Connection {
 	{
 		return idnumber;
 	}
+	
+	public boolean isConnected()
+	{
+		return connectionSocket.isConnected();
+	}
+	
 	public void setTimeout(int i)
 	{
 		TIMEOUT = i*1000;
-	}
-	
-	public void connect()
-	{
-		if(connectionSocket == null)
-		{
-			try
-			{
-				connectionSocket = new Socket();
-				out = new PrintWriter(connectionSocket.getOutputStream(), true);
-				in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-				
-			} catch (IOException e)	{
-				System.out.println("Could not create socket.");
-			}
-			try
-			{
-				connectionSocket.setSoTimeout(TIMEOUT);
-				connectionSocket.connect(new InetSocketAddress(ip, port));
-			} catch (IOException e){
-				System.out.println("Could not connect.");
-			}
-			try 
-			{
-				String handshake;
-				out.println("Connect");
-				
-				handshake = in.readLine();
-				if(handshake.contains("ACK0"))
-				{
-					out.println("ACK1 "+HostListener.PORT+" "+idnumber);
-					System.out.println("Connection established. ID number: "+idnumber);
-					
-				}
-				
-				else if(handshake.equals("NAK"))
-				{
-					System.out.println("Peer declined connection");
-				}
-				
-			} 
-			catch (IOException e) 
-			{
-				System.out.println("Error while connecting.");
-			}
-		}
-		else
-			System.out.println("Connection to host with address: "+ip+" "+port+" is established");
-	}
-	
-	public void disconnect()
-	{
-		try
-		{
-			out.println("Disconnect");
-			connectionSocket.close();
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
 	}
 	
 	public void getFileList()

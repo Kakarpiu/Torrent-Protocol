@@ -63,7 +63,6 @@ public class UserInterface extends Thread{
 				else
 				{
 					String ip = arguments[1];
-					
 					try
 					{
 						Socket socket = new Socket();
@@ -84,20 +83,26 @@ public class UserInterface extends Thread{
 								handshake = in.readLine();
 								if(handshake.equals("ACK0"))
 								{
-									int portnumber = Integer.parseInt(in.readLine());
+									int peerport = Integer.parseInt(in.readLine());
 									int idnumber = Integer.parseInt(in.readLine());
-									Connection newCon = new Connection(socket.getInetAddress(), portnumber, idnumber);
+									Connection newCon = new Connection(socket.getInetAddress(), peerport, idnumber);
 									
-									// Tu jestem 
-									
-									out.println("ACK1 "+newCon+" "+idnumber);
-									System.out.println("Connection established. ID number: "+idnumber);
+									if(newCon.isConnected())
+									{
+										peers.add(newCon);
+										out.println("ACK1");
+										System.out.println("Connection established. ID number: "+idnumber);
+									}
+									else
+									{
+										out.println("NAK");
+										System.out.println("Couldn't establish connection.");
+									}
 								}
 								else if(handshake.equals("NAK"))
 								{
 									System.out.println("Peer declined connection");
 								}
-								
 							}	
 							catch (IOException e){	System.out.println("Error while connecting."); }
 						}	
@@ -108,29 +113,49 @@ public class UserInterface extends Thread{
 				break;
 			}
 			
+			case "disconnect" :
+			{
+				if(argsCout == 2)
+				{
+					try
+					{
+						int conId = Integer.parseInt(arguments[1]);
+						getConnection(conId);
+						// Tu skoñczy³em
+					}
+					catch(NumberFormatException e) { System.out.println("No connection with this id number");
+				}
+				else
+					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \ndisconnect id");
+				break;
+			}
+			}
+			
 			case "ack" : 
 			{
-				HostListener.ackConnection("ACK");
+				System.out.println("What port number do you want to use for listening? Choose between 10001 and 60000.");
+				boolean portEst = false;
+				
+				while(!portEst)
+				{
+					int portnumber = Integer.parseInt(console.readLine());
+					if(portnumber < 10001 && portnumber > 60000)
+						System.out.println("Choose between 10001 and 60000");
+					else
+					{
+						portEst = true;
+						HostListener.ackConnection("ACK", portnumber);
+					}
+				}
 				break;
 			}
 			
 			case "nak" :
 			{
-				HostListener.ackConnection("NAK");
+				HostListener.ackConnection("NAK", 0);
 				break;
 			}
 			
-			case "disconnect" :
-			{
-				if(peer.lock == true)
-				{
-					peer.disconnect();
-					System.out.println("Disconnected");
-				}
-				else
-					System.out.println("Couldn't disconnect from peer, because no connection was established");
-				break;
-			}
 			
 			case "mylist" :
 			{
@@ -216,5 +241,15 @@ public class UserInterface extends Thread{
 			default :
 			break;
 		}
+	}
+	
+	public Connection getConnection(int id)
+	{
+		for(Connection c : peers)
+		{
+			if(c.getId() == id)
+				return c;
+		}
+		return null;
 	}
 }

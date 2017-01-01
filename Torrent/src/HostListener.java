@@ -8,9 +8,9 @@ public class HostListener extends Thread{
 	
 	// TCP Socket
 	private ServerSocket serverSocket = null;
-	private static String answer;
+	private static String ack;
+	private static int ackport;
 	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
-	private static ArrayList<Connection> peer = null;
 	
 	private static HostListener instance = null;
 	private int TIMEOUT = 30000;
@@ -77,9 +77,11 @@ public class HostListener extends Thread{
 		}	
 	}
 	
-	public static void ackConnection(String a)
+	public static void ackConnection(String a, int p)
 	{
-		answer = a;
+		ack = a;
+		ackport = p;
+		
 		synchronized (instance)
 		{
 			instance.notify();
@@ -102,32 +104,31 @@ public class HostListener extends Thread{
 					wait(15000);
 				}
 				
-				if(answer == null)
+				if(ack == null)
 				{
 					System.out.println("User response timeout.");
 					socket.close();
 				}
 				
-				if(answer.equals("ACK"))
+				if(ack.equals("ACK"))
 				{
-					answer = null;
-					System.out.println("What port number do you want to use for listening? Choose between 10001 and 60000 ");
-					try
+					ack = null;
+					int portnumber = ackport;
+					ackport = 0;
+					
+					int idnumber = (int)(Math.random()*1000000)+1;
+					Connection newCon = new Connection(portnumber, idnumber);
+					out.println("ACK0");
+					out.println(portnumber);
+					out.println(idnumber);
+
+					if(in.readLine().equals("ACK1"))
 					{
-						int portnumber = Integer.parseInt(UserInterface.console.readLine());
-						if(portnumber < 10001 && portnumber > 60000)
-							System.out.println("Choose between 10001 and 60000");
-						else
-						{
-							int idnumber = (int)(Math.random()*1000000);
-							Connection newCon = new Connection(portnumber, idnumber);
-							out.println("ACK0");
-							out.println(portnumber);
-							out.println(idnumber);
-							// Tu skoñczy³em sprawdz nadawnie portu
-						}
+						UserInterface.peers.add(newCon);
+						System.out.println("Connection established");
 					}
-					catch(NumberFormatException e) { System.out.println("Input is not a integer number."); }
+					else
+						System.out.println("Couldn't establish connection");
 				}
 				else
 				{
