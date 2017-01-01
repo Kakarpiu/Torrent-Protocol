@@ -55,16 +55,14 @@ public class UserInterface extends Thread{
 		{	
 			case "connect" : 
 			{
-				if (argsCount != 3)
+				if (argsCount != 2)
 				{
-					System.out.println("Wrong number of arguments. This command takes 2 arguments in form of. \nconnect ip port");
+					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \nconnect ip");
 					return;
 				}
 				else
 				{
 					String ip = arguments[1];
-					int port;
-					int idnumber = (int)(Math.random() * 100000);
 					
 					try
 					{
@@ -75,7 +73,7 @@ public class UserInterface extends Thread{
 						try
 						{
 							socket.setSoTimeout(TIMEOUT);
-							socket.connect(new InetSocketAddress(ip, port));
+							socket.connect(new InetSocketAddress(ip, Main.PORT));
 							try 
 							{
 								// First handshake
@@ -90,7 +88,9 @@ public class UserInterface extends Thread{
 									int idnumber = Integer.parseInt(in.readLine());
 									Connection newCon = new Connection(socket.getInetAddress(), portnumber, idnumber);
 									
-									out.println("ACK1 "+HostListener.PORT+" "+idnumber);
+									// Tu jestem 
+									
+									out.println("ACK1 "+newCon+" "+idnumber);
 									System.out.println("Connection established. ID number: "+idnumber);
 								}
 								else if(handshake.equals("NAK"))
@@ -213,6 +213,8 @@ public class UserInterface extends Thread{
 					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npull index...");
 				break;
 			}
+			default :
+			break;
 		}
 	}
 }

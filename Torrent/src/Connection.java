@@ -23,10 +23,21 @@ public class Connection {
 		port = p;
 		idnumber = id;
 		
+		connectionSocket = new Socket();
 		try
 		{
-			connectionSocket.connect(ip, port);
-		}
+			out = new PrintWriter(connectionSocket.getOutputStream(), true);
+			in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+			
+			try
+			{
+				connectionSocket.setSoTimeout(TIMEOUT);
+				connectionSocket.connect(new InetSocketAddress(ip, port));
+			}	
+			catch (IOException e){ System.out.println("Could not connect."); }
+		} 
+		catch (IOException e){ System.out.println("Could not create streams."); }
+		
 	}
 	
 	public Connection(int p, int id) // When receiving
@@ -42,7 +53,7 @@ public class Connection {
 				in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 				idnumber = id;
 			}
-			catch (IOException e) { System.out.println("Couldn't creat streams."); }
+			catch (IOException e) { System.out.println("Couldn't create streams."); }
 		} 
 		catch (IOException e) { System.out.println("Couldn't create socket."); }
 	}

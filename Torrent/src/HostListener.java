@@ -108,37 +108,33 @@ public class HostListener extends Thread{
 					socket.close();
 				}
 				
-				else if(answer.equals("ACK"))
+				if(answer.equals("ACK"))
+				{
+					answer = null;
+					System.out.println("What port number do you want to use for listening? Choose between 10001 and 60000 ");
+					try
 					{
-						// Second handshake
-						int portnumber = (int)(Math.random()*10000) + 50000;
-						int idnumber = (int)(Math.random()*1000000);
-						Connection newCon = new Connection(portnumber, idnumber);
-						out.println("ACK0");
-						out.println(portnumber);
-						out.println(idnumber);
-						
-						String ack= in.readLine();
-						if(ack.contains("ACK1"))
+						int portnumber = Integer.parseInt(UserInterface.console.readLine());
+						if(portnumber < 10001 && portnumber > 60000)
+							System.out.println("Choose between 10001 and 60000");
+						else
 						{
-							String[] args = ack.split("\\s");
-							int port = Integer.parseInt(args[1]);
-							int idnumber = Integer.parseInt(args[2]);
-							UserInterface.peer = Connection.getInstance(clientSocket.getInetAddress().toString().substring(1), port, idnumber);
-							peer = UserInterface.peer;
-							peer.lock = true;
-							clientSocket.close();
-							System.out.println("Connection with host: "+clientSocket.getInetAddress().toString().substring(1)+" "
-									+port+" with id number: "+idnumber+" established");
+							int idnumber = (int)(Math.random()*1000000);
+							Connection newCon = new Connection(portnumber, idnumber);
+							out.println("ACK0");
+							out.println(portnumber);
+							out.println(idnumber);
+							// Tu skoñczy³em sprawdz nadawnie portu
 						}
 					}
-					else
-					{
-						System.out.println("Connection decliend");
-						clientSocket.close();
-					}
-					break;
+					catch(NumberFormatException e) { System.out.println("Input is not a integer number."); }
 				}
+				else
+				{
+					System.out.println("Connection decliend");
+				}
+				break;
+			}
 				
 				case "Disconnect" :
 				{
