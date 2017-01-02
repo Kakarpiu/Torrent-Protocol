@@ -9,8 +9,7 @@ public class UserInterface extends Thread{
 	protected static BufferedReader console;
 	protected static ArrayList<Connection> peers = new ArrayList<Connection>();
 	protected static boolean portEstablished = false;
-	private String argument;	
-	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
+	protected static FileList fileList = FileList.getInstance(Main.DIRPATH);
 	private int TIMEOUT = 30000;
 	
 	private UserInterface()
@@ -29,19 +28,15 @@ public class UserInterface extends Thread{
 	
 	public void run() 
 	{	
+		String argument;
 		while(true)
 		{
 			try
 			{
 				if((argument = console.readLine()) != null)
-				{
 					commandCenter(argument);
-				}
 			}
-			catch (IOException e) 
-			{
-				e.printStackTrace();
-			}
+			catch (IOException e) {	e.printStackTrace(); }
 		}
 	}
 	
@@ -115,20 +110,25 @@ public class UserInterface extends Thread{
 			
 			case "disconnect" :
 			{
-				if(argsCout == 2)
+				if(argsCount == 2)
 				{
 					try
 					{
 						int conId = Integer.parseInt(arguments[1]);
-						getConnection(conId);
-						// Tu skoñczy³em
+						Connection c = getConnection(conId);
+						if(c != null)
+						{
+							c.disconnect();
+							peers.remove(c);
+						}
+						else
+							System.out.println("No connection with number: "+conId);
 					}
-					catch(NumberFormatException e) { System.out.println("No connection with this id number");
+					catch(NumberFormatException e) { System.out.println("No connection with this id number"); }
 				}
 				else
 					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \ndisconnect id");
 				break;
-			}
 			}
 			
 			case "ack" : 
@@ -165,10 +165,21 @@ public class UserInterface extends Thread{
 			
 			case "getlist" :
 			{
-				if(peer.lock == true)
-					peer.getFileList();
-				else 
-					System.out.println("Couldn't get list from peer, because no connection was established");
+				if(argsCount == 2)
+				{
+					try
+					{
+						int conId = Integer.parseInt(arguments[1]);
+						Connection c = getConnection(conId);
+						if(c != null)
+							c.getFileList();
+						else
+							System.out.println("No connection with number: "+conId);
+					}
+					catch(NumberFormatException e) { System.out.println("No connection with this id number"); }
+				}
+				else
+					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \ngetlist id");
 				break;
 			}
 			
@@ -183,9 +194,10 @@ public class UserInterface extends Thread{
 					System.out.println("");
 				}
 			}
+			
 			case "push" :
 			{
-				if(Connection.lock == true && argsCount > 1)
+				if(argsCount > 1)
 				{
 					ArrayList<File> files = new ArrayList<File>();
 										
@@ -199,18 +211,27 @@ public class UserInterface extends Thread{
 							else
 								System.out.println("No file with index: "+tmp);
 						}
-						catch (NumberFormatException e)
-						{
-							System.out.println("Argument: "+arguments[i]+" is not a number");
-						}
+						catch (NumberFormatException e) { System.out.println("Argument: "+arguments[i]+" is not a number"); }
 					}
+					
 					File[] f = files.toArray(new File[files.size()]);
-					peer.push(f);
+					
+					System.out.println("What host do you want to send files to?");
+					String temp = console.readLine();
+					try
+					{
+						int conId = Integer.parseInt(temp);
+						Connection c = getConnection(conId);
+						if(c != null)
+							c.push(f);
+						else
+							System.out.println("No connection with number: "+conId);
+					}
+					catch(NumberFormatException e) { System.out.println("Argument: "+temp+" is not a number"); }
 				}
 				if(argsCount < 2)
 					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npush index...");
-				break;
-					
+				break;	
 			}
 			
 			case "pull" :

@@ -12,6 +12,7 @@ public class Connection {
 	private Socket connectionSocket = null;
 	private PrintWriter out = null;
 	private BufferedReader in = null;
+	private Listener listener;
 	
 	// FILETRANSFER LIST
 	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
@@ -33,6 +34,8 @@ public class Connection {
 			{
 				connectionSocket.setSoTimeout(TIMEOUT);
 				connectionSocket.connect(new InetSocketAddress(ip, port));
+				listener = new Listener(connectionSocket, out, in);
+				listener.start();
 			}	
 			catch (IOException e){ System.out.println("Could not connect."); }
 		} 
@@ -42,23 +45,25 @@ public class Connection {
 	
 	public Connection(int p, int id) // When receiving
 	{
-		ServerSocket listener;
+		ServerSocket tmp;
 		try
 		{
-			listener = new ServerSocket(p);
-			connectionSocket = listener.accept();
+			tmp = new ServerSocket(p);
+			connectionSocket = tmp.accept();
 			try
 			{
 				out = new PrintWriter(connectionSocket.getOutputStream(), true);
 				in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 				idnumber = id;
+				listener = new Listener(connectionSocket, out, in);
+				listener.start();
 			}
 			catch (IOException e) { System.out.println("Couldn't create streams."); }
 		} 
 		catch (IOException e) { System.out.println("Couldn't create socket."); }
 	}
 	
-	public String getIp()
+	public InetAddress getIp()
 	{
 		return ip;
 	}
@@ -83,6 +88,11 @@ public class Connection {
 		TIMEOUT = i*1000;
 	}
 	
+	public void disconnect()
+	{
+		out.println("dis");
+	}
+	
 	public void getFileList()
 	{
 		try 
@@ -95,10 +105,7 @@ public class Connection {
 				System.out.println(response);
 			}
 		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
+		catch (IOException e) { System.out.println("Couldn't get list."); }
 	}
 	
 	

@@ -66,7 +66,7 @@ public class FileList {
 	
 	public String sendFiles()
 	{
-		String list = "File list from host: "+Connection.getIp()+"\n";
+		String list = "File list from host: "+HostListener.getIp()+"\n";
 		for(int i = 0; i<fileList.size(); i++)
 		{
 			double size = fileList.get(i).length();

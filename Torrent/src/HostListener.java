@@ -7,7 +7,7 @@ public class HostListener extends Thread{
 	static int PORT;
 	
 	// TCP Socket
-	private ServerSocket serverSocket = null;
+	private static ServerSocket serverSocket = null;
 	private static String ack;
 	private static int ackport;
 	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
@@ -38,6 +38,12 @@ public class HostListener extends Thread{
 			instance = new HostListener(port);
 		
 		return instance;
+	}
+	
+	
+	public static String getIp()
+	{
+		return serverSocket.getInetAddress().toString().substring(1);
 	}
 	
 	public void setTimeout(int i)
@@ -136,23 +142,8 @@ public class HostListener extends Thread{
 				}
 				break;
 			}
-				
-				case "Disconnect" :
-				{
-					peer.lock = false;
-					System.out.println("Peer has disconnected.");
-					clientSocket.close();
-					break;
-				}
-				
-				case "Get List" :
-				{
-					listenerOUT.println(fileList.sendFiles());
-					clientSocket.close();
-					break;
-				}
-				
-				case "Push" :
+							
+			case "Push" :
 				{
 					
 					int filesCount = Integer.parseInt(listenerIN.readLine());
