@@ -143,49 +143,8 @@ public class HostListener extends Thread{
 				break;
 			}
 							
-			case "Push" :
-				{
-					
-					int filesCount = Integer.parseInt(listenerIN.readLine());
-					ArrayList<String> filesNames = new ArrayList<String>();
-					
-					for(int i = 0; i<filesCount; i++)
-					{
-						String name = listenerIN.readLine();
-						String size = listenerIN.readLine();
-						System.out.println("Peer with IP: "+clientSocket.getInetAddress()+" wants to push file: "+name+" with size of "+size+" bytes. Type ack to accept or nak to decline");
-						synchronized (instance)
-						{
-							wait(15000);
-						}
-						
-						if(answer == null)
-						{
-							System.out.println("User response timeout. File declined");
-						}
-						
-						if(answer.equals("ACK"))
-						{
-							filesNames.add(name);
-						}
-						if(answer.equals("NAK"))
-						{
-							listenerOUT.println("NAK");
-						}
-					}
-					
-					int transferport = (int)(Math.random()*40000)+20000;
-					listenerOUT.println("ACK "+transferport);
-					clientSocket.close();
-						
-					for(int i = 0; i<filesNames.size(); i++)
-					{
-						FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesNames.get(i)), FileTransfer.command.RECEIVE);
-						ft.start();
-					}
-					break;
-				}
-				
+			
+			
 				case "Pull" :
 				{
 					int filesCount = Integer.parseInt(listenerIN.readLine());

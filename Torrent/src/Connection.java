@@ -5,23 +5,22 @@ import java.net.*;
 
 public class Connection {
 
-	private InetAddress ip;
-	private int port;
-	private int idnumber;
 	private int TIMEOUT = 30000;
+	
+	private InetAddress ip;
+	private int idnumber;
+		
 	private Socket connectionSocket = null;
 	private PrintWriter out = null;
 	private BufferedReader in = null;
-	private Listener listener;
+	private Listener listener = null;
 	
 	// FILETRANSFER LIST
-	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
-	//	private static FileList fileList = FileList.getInstance(Main.DIRPATH);
+//	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
 	
 	public Connection(InetAddress i, int p, int id) // When connecting
 	{
 		ip = i;
-		port = p;
 		idnumber = id;
 		
 		connectionSocket = new Socket();
@@ -33,7 +32,7 @@ public class Connection {
 			try
 			{
 				connectionSocket.setSoTimeout(TIMEOUT);
-				connectionSocket.connect(new InetSocketAddress(ip, port));
+				connectionSocket.connect(new InetSocketAddress(ip, p));
 				listener = new Listener(connectionSocket, out, in);
 				listener.start();
 			}	
@@ -67,11 +66,6 @@ public class Connection {
 	{
 		return ip;
 	}
-	
-	public int getPort()
-	{
-		return port;
-	}	
 	
 	public int getId()
 	{
@@ -113,11 +107,7 @@ public class Connection {
 	{
 		try 
 		{
-			Socket socket = new Socket();
-			socket.setSoTimeout(TIMEOUT);
-			socket.connect(new InetSocketAddress(ip, port));
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			ArrayList<File> f = new ArrayList<File>();
 			
 			out.println("Push");
 			out.println(files.length);
@@ -126,32 +116,22 @@ public class Connection {
 			{
 				out.println(files[i].getName());
 				out.println(files[i].length());
-			}
-			
-			String ans = in.readLine();
-			String[] args = ans.split("\\s");
-			
-			if(args[0].equals("ACK"))
-			{
-				int transferport = Integer.parseInt(args[1]);
 				
-				for(int i = 0; i<files.length; i++)
-				{
-					FileTransfer ft = new FileTransfer(new Socket(ip, transferport+i), files[i], FileTransfer.command.PUSH);
-					ft.start();
-				}
-				
-			}
-			else if(args[0].equals("NAK"))
-			{
-				System.out.println("Host decilend receiving file");
+				String tmp = in.readLine();
+				if(tmp.equals("ACK"))
+					f.add(files[i]);	
+				else if(tmp.equals("NAK"))
+					System.out.println(files[i].getName()+" declined");
 			}
 			
+			int transferport = 60001;
+			for(int i = 0; i<f.size(); i++)
+			{
+				FileTransfer ft = new FileTransfer(new Socket(ip, transferport+i), f.get(i), FileTransfer.command.PUSH);
+				ft.start();
+			}
 		} 
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		catch (IOException e) { e.printStackTrace(); }
 	}
 	
 	public void pull(Integer[] files)

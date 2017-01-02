@@ -22,7 +22,8 @@ public class FileTransfer extends Thread{
 	private command cmd;
 	enum command{PUSH, RECEIVE};
 	
-	private byte[] buffer = new byte[8*1024];
+	private int bufferSizeKB = 8;
+	private byte[] buffer = new byte[bufferSizeKB*1024];
 	
 	public FileTransfer(Socket socket, File file, command cmd)
 	{
@@ -44,16 +45,21 @@ public class FileTransfer extends Thread{
 			push();
 		else if(cmd == command.RECEIVE)
 		{
-			try {
+			try 
+			{
 				ServerSocket receiveSock = new ServerSocket(transferport) ;
 				socket = receiveSock.accept();
 				receive();
 			}
-			catch (IOException e)
+			catch (IOException e) { System.out.println("Error while creating socket."); }
+			
+			try
 			{
-				e.printStackTrace();
+				socket.close();
+				receiveSock.close();
 			}
-		}
+			catch(IOException e) { System.out.println("Error while closing sockets."); }
+		}	
 	}
 	
 	public void push()
@@ -62,22 +68,21 @@ public class FileTransfer extends Thread{
 		{
 			fileIN = new FileInputStream(file);
 			send = socket.getOutputStream();
-				
+			
 			int count;
 			System.out.println("Pushing file: "+file.getName());
-			while((count = fileIN.read(buffer)) > 0)
+			try
 			{
-				send.write(buffer, 0, count);
-				n++;
+				while((count = fileIN.read(buffer)) > 0)
+				{
+					send.write(buffer, 0, count);
+					n++;
+				}
+				System.out.println(file.getName()+" pushed");
 			}
-			System.out.println(file.getName()+" pushed");
-			
-			socket.close();
+			catch (IOException e) { System.out.println("Error while sending file. Sent "+n*bufferSizeKB+" KB"); }
 		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
+		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	 }
 	
 	public void receive()
