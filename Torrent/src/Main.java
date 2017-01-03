@@ -31,32 +31,61 @@ public class Main {
 				instanceLog.createNewFile();
 				instanceLog.deleteOnExit();
 			}
-			BufferedReader reader = new BufferedReader(new FileReader(instanceLog));
-			String tmp;
-			
-			while((tmp = reader.readLine()) != null)
-				number = Integer.parseInt(tmp);
-			
-			number++;
-			BufferedWriter writer = new BufferedWriter(new FileWriter(instanceLog));
-			writer.write(Integer.toString(number));
-	
-			DIRPATH = DIRPATH+number;
-			File directory = new File(DIRPATH);
-			directory.mkdir();
-			
-			reader.close();
-			writer.close();
+			try
+			{
+				BufferedReader reader = new BufferedReader(new FileReader(instanceLog));
+				String tmp;
+				
+				while((tmp = reader.readLine()) != null)
+					number = Integer.parseInt(tmp);
+				try
+				{
+					number++;
+					BufferedWriter writer = new BufferedWriter(new FileWriter(instanceLog));
+					writer.write(Integer.toString(number));
+					try
+					{
+						DIRPATH = DIRPATH+number;
+						File directory = new File(DIRPATH);
+						directory.mkdir();
+						
+						reader.close();
+						writer.close();
+					}
+					catch (IOException e) { System.out.println("Error while closing streams.");}
+				}
+				catch (IOException e) { System.out.println("Error while overwriting instanceLog file"); System.exit(0);}
+			}
+			catch (IOException e) { System.out.println("Error whiloe reading from instanceLog file."); System.exit(0);}
 		} 
-		catch (FileNotFoundException e1) 
-		{
-			e1.printStackTrace();
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
+		catch (IOException e) { System.out.println("Error while creating instanceLog file"); System.exit(0);}
 		return number;
+	}
+	
+	public static void destroyInstance()
+	{
+		File instanceLog = new File(LOGPATH);
+		try
+		{
+			BufferedReader reader = new BufferedReader(new FileReader(instanceLog));
+			try
+			{
+				int number = Integer.parseInt(reader.readLine());
+				
+				File directory = new File(DIRPATH);
+				directory.delete();
+				number--;
+				try
+				{
+					BufferedWriter writer = new BufferedWriter(new FileWriter(instanceLog));
+					writer.write(Integer.toString(number));
+					System.exit(0);
+				}
+				catch (IOException e) { System.out.println("Couldn't overwrite file"); System.exit(0); }
+			}
+			catch (NumberFormatException | IOException e)  { System.out.println("InstanceLog file has been manipulated. Cannot correctly delet directory and update instance number."); System.exit(0); } 
+		} 
+		catch (FileNotFoundException e) { System.exit(0); } 
 	}
 
 }

@@ -24,7 +24,7 @@ public class HostListener extends Thread{
 			this.setName("HostListener");
 			System.out.println("Host Listens on port number: "+port);
 		} 
-		catch (IOException e) { System.out.println("Port might be choosen by another application. Restart program and choose another port."); Main.eraseInstance(); }       
+		catch (IOException e) { System.out.println("Port might be choosen by another application. Restart program and choose another port."); Main.destroyInstance(); }       
 	}
 	
 	public static HostListener getInstance(int port)
@@ -54,7 +54,6 @@ public class HostListener extends Thread{
 			try 
 			{
 				Socket clientSocket = serverSocket.accept();
-				clientSocket.setSoTimeout(TIMEOUT);
 				try 
 				{
 					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));;

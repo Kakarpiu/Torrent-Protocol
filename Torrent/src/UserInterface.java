@@ -68,60 +68,68 @@ public class UserInterface extends Thread{
 		{	
 			case "connect" : 
 			{
-				if (argsCount != 2)
+				if (argsCount != 3)
 				{
-					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \nconnect ip");
+					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \nconnect ip port");
 					return;
 				}
 				else
 				{
-					String ip = arguments[1];
 					try
 					{
-						Socket socket = new Socket();
-						PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-						BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-						
+						String ip = arguments[1];
+						int port = Integer.parseInt(arguments[2]);
 						try
 						{
-							socket.setSoTimeout(TIMEOUT);
-							socket.connect(new InetSocketAddress(ip, Main.PORT));
-							try 
+							Socket socket = new Socket();
+							socket.connect(new InetSocketAddress(ip, port));
+							try
 							{
-								// First handshake
-								String handshake;
-								out.println("Connect");
-								
-								// Second handshake
-								handshake = in.readLine();
-								if(handshake.equals("ACK0"))
+								PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+								BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+								try 
 								{
-									int peerport = Integer.parseInt(in.readLine());
-									int idnumber = Integer.parseInt(in.readLine());
-									Connection newCon = new Connection(socket.getInetAddress(), peerport, idnumber);
+									// First handshake
+									String handshake;
+									out.println("Connect");
 									
-									if(newCon.isConnected())
+									// Second handshake
+									handshake = in.readLine();
+									if(handshake.equals("ACK0"))
 									{
-										peers.add(newCon);
-										out.println("ACK1");
-										System.out.println("Connection established. ID number: "+idnumber);
+										int peerport = Integer.parseInt(in.readLine());
+										int idnumber = Integer.parseInt(in.readLine());
+										Connection newCon = new Connection(socket.getInetAddress(), peerport, idnumber);
+										
+										if(newCon.isConnected())
+										{
+											peers.add(newCon);
+											out.println("ACK1");
+											System.out.println("Connection established. ID number: "+idnumber);
+										}
+										else
+										{
+											out.println("NAK");
+											System.out.println("Couldn't establish connection.");
+										}
 									}
-									else
+									else if(handshake.equals("NAK"))
 									{
-										out.println("NAK");
-										System.out.println("Couldn't establish connection.");
+										System.out.println("Peer declined connection");
 									}
-								}
-								else if(handshake.equals("NAK"))
+								}	
+								catch (IOException | NumberFormatException e){	System.out.println("Error while receiving files."); }
+								finally
 								{
-									System.out.println("Peer declined connection");
+									socket.close();
 								}
 							}	
-							catch (IOException e){	System.out.println("Error while connecting."); }
+							catch (IOException e){ System.out.println("Could not create socket.");  }
 						}	
-						catch (IOException e){ System.out.println("Could not connect."); }
-					}	
-					catch (IOException e){ System.out.println("Could not create socket."); }
+						catch (IOException e){ System.out.println("Error while connecting. Check host address."); }
+					}
+					catch (NumberFormatException e) { System.out.println("Port is not a Integer number."); }
+					
 				}
 				break;
 			}
@@ -151,7 +159,7 @@ public class UserInterface extends Thread{
 			
 			case "ack" : 
 			{
-				System.out.println("What port number do you want to use for listening? Choose between 10001 and 60000.");
+				System.out.println("What port number do you want to use for listening? Choose between 20000 and 60000.");
 				boolean portEst = false;
 				
 				while(!portEst)
@@ -160,7 +168,7 @@ public class UserInterface extends Thread{
 					try 
 					{
 						portnumber = Integer.parseInt(console.readLine());
-						if(portnumber < 20001 && portnumber > 60000)
+						if(portnumber < 20000 && portnumber > 60000)
 							System.out.println("Choose between 20001 and 60000");
 						else
 						{
