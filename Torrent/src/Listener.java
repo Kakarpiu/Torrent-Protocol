@@ -51,7 +51,7 @@ public class Listener extends Thread{
 			
 			case "Get List" :
 			{
-				out.println(UserInterface.fileList.sendFiles());
+				out.println(UserInterface.fileList.showFiles());
 				break;
 			}
 			
@@ -78,7 +78,7 @@ public class Listener extends Thread{
 						if(tmp.equals("NAK"))
 							out.println("NAK");
 					}
-					catch(IOException e) { System.out.println("UserInterface exceptions."); }
+					catch(IOException e) { System.out.println("Error while reading from console."); }
 				}
 				catch (IOException e) { System.out.println("Stream exception."); }
 				break;
@@ -106,24 +106,6 @@ public class Listener extends Thread{
 						out.println("NAK");
 				}
 				catch (IOException e) { System.out.println(); }
-				
-				String response = listenerIN.readLine();
-				
-				if(response.contains("ACK"))
-				{
-					String[] args = response.split("\\s");
-					int transferport = Integer.parseInt(args[1]);
-					clientSocket.close();
-					
-					for(int i = 0; i<filesIndx.size(); i++)
-					{
-						FileTransfer ft = new FileTransfer(new Socket(Connection.getIp(), transferport+i), filesIndx.get(i), FileTransfer.command.PUSH);
-						ft.start();
-					}
-				}
-				else
-					clientSocket.close();
-				
 				break;
 			}
 		}

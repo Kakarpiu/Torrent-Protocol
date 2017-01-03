@@ -21,15 +21,10 @@ public class HostListener extends Thread{
 		try 
 		{
 			serverSocket = new ServerSocket(port);
-			UserInterface.portEstablished = true;
 			this.setName("HostListener");
 			System.out.println("Host Listens on port number: "+port);
 		} 
-		catch (IOException e)
-		{
-			System.out.println("Can't create socket on a given port");
-			UserInterface.portEstablished = false;
-		}
+		catch (IOException e) { System.out.println("Port might be choosen by another application. Restart program and choose another port."); Main.eraseInstance(); }       
 	}
 	
 	public static HostListener getInstance(int port)
@@ -66,19 +61,13 @@ public class HostListener extends Thread{
 					PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
 					receive(clientSocket, in, out);
 				}
-				catch (IOException e) 
-				{
-					System.out.println("Could not create stream.");
-				}
+				catch (IOException e) { System.out.println("Could not create stream."); }
 				finally
 				{
 					clientSocket.close();
 				}
 			}
-			catch (IOException e) 
-			{
-				System.out.println("Could not create socket.");
-			}	
+			catch (IOException e) { System.out.println("Could not create socket."); }	
 			
 		}	
 	}
@@ -96,69 +85,58 @@ public class HostListener extends Thread{
 	
 	public void receive(Socket socket, BufferedReader in, PrintWriter out)
 	{
-		// First handshake
-		String handshake = in.readLine();
-		
-		switch(handshake)
+		String handshake;
+		try 
 		{
-			case "Connect" :
+			handshake = in.readLine();
+			switch(handshake)
 			{
-				System.out.println("Peer with IP: "+socket.getInetAddress()+" is trying to connect. \nType ack to accept connection or nak to decline");
-				
-				synchronized (instance)
+				case "Connect" :
 				{
-					wait(15000);
-				}
-				
-				if(ack == null)
-				{
-					System.out.println("User response timeout.");
-					socket.close();
-				}
-				
-				if(ack.equals("ACK"))
-				{
-					ack = null;
-					int portnumber = ackport;
-					ackport = 0;
+					System.out.println("Peer with IP: "+socket.getInetAddress()+" is trying to connect. \nType ack to accept connection or nak to decline");
 					
-					int idnumber = (int)(Math.random()*1000000)+1;
-					Connection newCon = new Connection(portnumber, idnumber);
-					out.println("ACK0");
-					out.println(portnumber);
-					out.println(idnumber);
-
-					if(in.readLine().equals("ACK1"))
+					synchronized (instance)
 					{
-						UserInterface.peers.add(newCon);
-						System.out.println("Connection established");
+						try 
+						{
+							wait(15000);
+						} catch (InterruptedException e) { System.out.println("Error while waiting for response from user"); }
+					}
+					
+					if(ack == null)
+					{
+						System.out.println("User response timeout.");
+						socket.close();
+					}
+					
+					if(ack.equals("ACK"))
+					{
+						ack = null;
+						int portnumber = ackport;
+						ackport = 0;
+						
+						int idnumber = (int)(Math.random()*1000000)+1;
+						Connection newCon = new Connection(portnumber, idnumber);
+						out.println("ACK0");
+						out.println(portnumber);
+						out.println(idnumber);
+
+						if(in.readLine().equals("ACK1"))
+						{
+							UserInterface.peers.add(newCon);
+							System.out.println("Connection established");
+						}
+						else
+							System.out.println("Couldn't establish connection");
 					}
 					else
-						System.out.println("Couldn't establish connection");
+					{
+						System.out.println("Connection decliend");
+					}
+					break;
 				}
-				else
-				{
-					System.out.println("Connection decliend");
-				}
-				break;
-			}
-							
-			
-			
-				
-					
 			}
 		}
-		
-		catch (IOException e) 
-		{
-			System.out.println("Could not recive connection.");
-			e.printStackTrace();
-		} 
-		catch (InterruptedException e) 
-		{
-			e.printStackTrace();
-		}
-		
+		catch (IOException e) { System.out.println("Error while receiving from stream"); }
 	}
 }

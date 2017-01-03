@@ -4,7 +4,7 @@ public class Main {
 
 	static String LOGPATH = "C:/Torrent/InstanceLog.txt";
 	static String DIRPATH = "C:/Torrent/TORrent_";
-	static int PORT = 10000;
+	static int PORT = 0;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -12,7 +12,7 @@ public class Main {
 		int instance = getInstanceNumber();
 		
 		UserInterface ui = UserInterface.getInstance();
-		HostListener hl = null;
+		HostListener hl = HostListener.getInstance(Main.PORT);
 	
 		ui.start();
 		hl.start();

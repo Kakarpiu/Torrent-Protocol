@@ -35,14 +35,16 @@ public class FileList {
 		
 		return instance;
 	}
-	
-	public void showFiles()
+		
+	public String showFiles()
 	{
 		refreshList();
+		String list = "";
+		
 		for(int i = 0; i<fileList.size(); i++)
-		{
-			System.out.println(fileList.get(i).getName()+" "+getFileSize(fileList.get(i)));				
-		}	
+			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i));
+		
+		return list;
 	}
 	
 	public static String getFileSize(File file)

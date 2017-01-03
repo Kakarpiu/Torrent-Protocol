@@ -28,7 +28,6 @@ public class Connection {
 		{
 			out = new PrintWriter(connectionSocket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-			
 			try
 			{
 				connectionSocket.setSoTimeout(TIMEOUT);
@@ -55,6 +54,11 @@ public class Connection {
 				idnumber = id;
 				listener = new Listener(connectionSocket, out, in, transfers);
 				listener.start();
+				try
+				{
+					tmp.close();
+				}
+				catch (IOException e) { System.out.println("Error while closing listining socket."); }
 			}
 			catch (IOException e) { System.out.println("Couldn't create streams."); }
 		} 
@@ -91,12 +95,10 @@ public class Connection {
 		try 
 		{
 			out.println("Get List");
-			String response;
+			String response = in.readLine();
 			
-			while((response = in.readLine()) != null)
-			{
+			while(response != null)
 				System.out.println(response);
-			}
 		} 
 		catch (IOException e) { System.out.println("Couldn't get list."); }
 	}

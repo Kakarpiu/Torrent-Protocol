@@ -15,7 +15,25 @@ public class UserInterface extends Thread{
 	private UserInterface()
 	{
 		console = new BufferedReader(new InputStreamReader(System.in));
-	}
+		System.out.println("What port do you want to listen on?");
+		
+		while(true)
+		{
+			try 
+			{
+				int port = Integer.parseInt(console.readLine());
+				if(port < 10000 && port > 20000)
+					System.out.println("Choose between 10000 and 20000.");
+				else
+				{
+					Main.PORT = port;
+					break;
+				}
+			}
+			catch (NumberFormatException e) { System.out.println("Input needs to be an Integer number beetwen 10000 and 20000"); }
+			catch (IOException e) { System.out.println("Error while reading from console. Restart program"); System.exit(0); }
+		}
+	}	
 	
 	public static UserInterface getInstance()
 	{
@@ -138,14 +156,20 @@ public class UserInterface extends Thread{
 				
 				while(!portEst)
 				{
-					int portnumber = Integer.parseInt(console.readLine());
-					if(portnumber < 10001 && portnumber > 60000)
-						System.out.println("Choose between 10001 and 60000");
-					else
+					int portnumber;
+					try 
 					{
-						portEst = true;
-						HostListener.ackConnection("ACK", portnumber);
-					}
+						portnumber = Integer.parseInt(console.readLine());
+						if(portnumber < 20001 && portnumber > 60000)
+							System.out.println("Choose between 20001 and 60000");
+						else
+						{
+							portEst = true;
+							HostListener.ackConnection("ACK", portnumber);
+						}
+					} 
+					catch (NumberFormatException e) { System.out.println("Input is not a integer number."); }
+					catch (IOException e) { System.out.println("Error while reading from console."); }
 				}
 				break;
 			}
@@ -159,7 +183,7 @@ public class UserInterface extends Thread{
 			
 			case "mylist" :
 			{
-				fileList.showFiles();
+				System.out.println(fileList.showFiles());
 				break;
 			}
 			
