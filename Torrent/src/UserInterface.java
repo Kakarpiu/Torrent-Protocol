@@ -197,37 +197,31 @@ public class UserInterface extends Thread{
 			
 			case "push" :
 			{
-				if(argsCount > 1)
+				if(argsCount == 2)
 				{
-					ArrayList<File> files = new ArrayList<File>();
-										
-					for(int i = 1; i<argsCount; i++)
+					File file = fileList.getFile(arguments[1]);
+					if(file != null)
 					{
-						try
+						System.out.println("What host do you want to send files to?");
+						String temp;
+						try 
 						{
-							int tmp = Integer.parseInt(arguments[i]);
-							if(fileList.getFile(tmp) != null)
-								files.add(fileList.getFile(tmp));
-							else
-								System.out.println("No file with index: "+tmp);
-						}
-						catch (NumberFormatException e) { System.out.println("Argument: "+arguments[i]+" is not a number"); }
+							temp = console.readLine();
+							try
+							{
+								int conId = Integer.parseInt(temp);
+								Connection c = getConnection(conId);
+								if(c != null)
+									c.push(file);
+								else
+									System.out.println("No connection with number: "+conId);
+							}
+							catch(NumberFormatException e) { System.out.println("Argument: "+temp+" is not a number"); }
+						} 
+						catch (IOException e1) { System.out.println("Couldn't read from UserInterface."); }
 					}
-					
-					File[] f = files.toArray(new File[files.size()]);
-					
-					System.out.println("What host do you want to send files to?");
-					String temp = console.readLine();
-					try
-					{
-						int conId = Integer.parseInt(temp);
-						Connection c = getConnection(conId);
-						if(c != null)
-							c.push(f);
-						else
-							System.out.println("No connection with number: "+conId);
-					}
-					catch(NumberFormatException e) { System.out.println("Argument: "+temp+" is not a number"); }
+					else
+						System.out.println("No such file");				
 				}
 				if(argsCount < 2)
 					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npush index...");
@@ -236,31 +230,35 @@ public class UserInterface extends Thread{
 			
 			case "pull" :
 			{
-				if(Connection.lock == true && argsCount > 1)
+				if(argsCount == 2)
 				{
-					ArrayList<Integer> files = new ArrayList<Integer>();
-					
-					for(int i = 1; i<argsCount; i++)
+					String filename = arguments[1];
+					System.out.println("What host do you want to pull files from?");
+					String temp;
+					try
 					{
+						temp = console.readLine();
 						try
 						{
-							int tmp = Integer.parseInt(arguments[i]);
-							files.add(tmp);
+							int conId = Integer.parseInt(temp);
+							Connection c = getConnection(conId);
+							if(c != null)
+								c.pull(filename);
+							else
+								System.out.println("No connection with number: "+conId);
 						}
-						catch(NumberFormatException e)
-						{
-							System.out.println("Argument: "+arguments[i]+" is not a number");
-						}
-					}
-					Integer[] f = files.toArray(new Integer[files.size()]);
-					peer.pull(f);
+						catch(NumberFormatException e) { System.out.println("Argument: "+temp+" is not a number"); }
+					} 
+					catch (IOException e1) { System.out.println("Couldn't read from UserInterface."); }
+					
 				}
 				if(argsCount < 2)
 					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npull index...");
 				break;
 			}
+			
 			default :
-			break;
+				break;
 		}
 	}
 	

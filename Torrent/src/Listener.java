@@ -7,12 +7,14 @@ public class Listener extends Thread{
 	Socket socket = null;
 	PrintWriter out = null;
 	BufferedReader in = null;
+	private ArrayList<FileTransfer> transfers = null;
 	
-	public Listener(Socket s, PrintWriter o, BufferedReader i)
+	public Listener(Socket s, PrintWriter o, BufferedReader i,  ArrayList t)
 	{
 		socket = s;
 		out = o;
 		in = i;
+		transfers = t;
 	}
 	
 	public void run()
@@ -55,43 +57,73 @@ public class Listener extends Thread{
 			
 			case "Push" :
 			{
-				ArrayList<String> filesNames = new ArrayList<String>();
-				
-				int filesCount;
 				try 
 				{
-					filesCount = Integer.parseInt(in.readLine());
-					System.out.println("Peer with IP: "+socket.getInetAddress()+" is pushing "+filesCount+" fiels.");
+					String filename = in.readLine();
+					String filesize = in.readLine();
+					System.out.println("Peer with IP: "+socket.getInetAddress()+" is pushing "+filename+" "+filesize);
 					
-					for(int i = 0; i<filesCount; i++)
+					try
 					{
-						String name = in.readLine();
-						String size = in.readLine();
-						System.out.println(name+" with size of "+size+" bytes. Type ack to accept or nak to decline");
-						
-						try
+						String tmp = UserInterface.console.readLine();
+						if(tmp.equals("ACK"))
 						{
-							String tmp = UserInterface.console.readLine();
+							out.println("ACK");
+							int transferport = 60001;
 							
-							if(tmp.equals("ACK"))
-							{
-								out.println("ACK");
-								filesNames.add(name);
-							}
-							if(tmp.equals("NAK"))
-								out.println("NAK");
+							FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
+							transfers.add(ft);
+							ft.start();
 						}
-						catch(IOException e) { System.out.println("UserInterface exceptions."); }
+						if(tmp.equals("NAK"))
+							out.println("NAK");
 					}
-					
-					int transferport = 60001;
-					for(int i = 0; i<filesNames.size(); i++)
+					catch(IOException e) { System.out.println("UserInterface exceptions."); }
+				}
+				catch (IOException e) { System.out.println("Stream exception."); }
+				break;
+			}
+			
+			case "Pull" :
+			{
+				try
+				{
+					String filename = in.readLine();
+					File file = UserInterface.fileList.getFile(filename);
+					if(file != null)
 					{
-						FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesNames.get(i)), FileTransfer.command.RECEIVE);
+						out.println("ACK");
+						if(in.readLine().equals("ACK1"))
+						{
+							int transferport = 60001;
+							
+							FileTransfer ft = new FileTransfer(new Socket(socket.getInetAddress(), transferport), file, FileTransfer.command.PUSH);
+							transfers.add(ft);
+							ft.start();
+						}
+					}
+					else
+						out.println("NAK");
+				}
+				catch (IOException e) { System.out.println(); }
+				
+				String response = listenerIN.readLine();
+				
+				if(response.contains("ACK"))
+				{
+					String[] args = response.split("\\s");
+					int transferport = Integer.parseInt(args[1]);
+					clientSocket.close();
+					
+					for(int i = 0; i<filesIndx.size(); i++)
+					{
+						FileTransfer ft = new FileTransfer(new Socket(Connection.getIp(), transferport+i), filesIndx.get(i), FileTransfer.command.PUSH);
 						ft.start();
 					}
-				} 
-				catch (IOException e) { System.out.println("File count stream exception."); }
+				}
+				else
+					clientSocket.close();
+				
 				break;
 			}
 		}

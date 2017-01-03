@@ -91,23 +91,20 @@ public class FileTransfer extends Thread{
 		{
 			receive = socket.getInputStream();
 			fileOUT = new FileOutputStream(file);
-			System.out.println("Receiving file "+file.getName());
-			int count;
-			while((count = receive.read(buffer)) > 0)
-			{
-				fileOUT.write(buffer, 0, count);
-				n++;
-			}
-			System.out.println(file.getName()+" received");
 			
-			receive.close();
-			fileOUT.close();
+			int count;
+			System.out.println("Receiving file "+file.getName());
+			try
+			{
+				while((count = receive.read(buffer)) > 0)
+				{
+					fileOUT.write(buffer, 0, count);
+					n++;
+				}
+				System.out.println(file.getName()+" received");
+			}
+			catch (IOException e) { System.out.println("Error while receiving file. Received "+n*bufferSizeKB+" KB"); }
 		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
+		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	}
-	
-	
 }

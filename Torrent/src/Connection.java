@@ -16,7 +16,7 @@ public class Connection {
 	private Listener listener = null;
 	
 	// FILETRANSFER LIST
-//	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
+	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
 	
 	public Connection(InetAddress i, int p, int id) // When connecting
 	{
@@ -33,13 +33,12 @@ public class Connection {
 			{
 				connectionSocket.setSoTimeout(TIMEOUT);
 				connectionSocket.connect(new InetSocketAddress(ip, p));
-				listener = new Listener(connectionSocket, out, in);
+				listener = new Listener(connectionSocket, out, in, transfers);
 				listener.start();
 			}	
 			catch (IOException e){ System.out.println("Could not connect."); }
 		} 
 		catch (IOException e){ System.out.println("Could not create streams."); }
-		
 	}
 	
 	public Connection(int p, int id) // When receiving
@@ -54,7 +53,7 @@ public class Connection {
 				out = new PrintWriter(connectionSocket.getOutputStream(), true);
 				in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 				idnumber = id;
-				listener = new Listener(connectionSocket, out, in);
+				listener = new Listener(connectionSocket, out, in, transfers);
 				listener.start();
 			}
 			catch (IOException e) { System.out.println("Couldn't create streams."); }
@@ -103,89 +102,50 @@ public class Connection {
 	}
 	
 	
-	public void push(File[] files)
+	public void push(File file)
 	{
 		try 
 		{
-			ArrayList<File> f = new ArrayList<File>();
-			
 			out.println("Push");
-			out.println(files.length);
+			out.println(file.getName());
+			out.println(FileList.getFileSize(file));
 			
-			for(int i = 0; i<files.length; i++)
+			String tmp = in.readLine();
+			if(tmp.equals("ACK"))
 			{
-				out.println(files[i].getName());
-				out.println(files[i].length());
+				int transferport = 60001;
 				
-				String tmp = in.readLine();
-				if(tmp.equals("ACK"))
-					f.add(files[i]);	
-				else if(tmp.equals("NAK"))
-					System.out.println(files[i].getName()+" declined");
-			}
-			
-			int transferport = 60001;
-			for(int i = 0; i<f.size(); i++)
-			{
-				FileTransfer ft = new FileTransfer(new Socket(ip, transferport+i), f.get(i), FileTransfer.command.PUSH);
+				FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
+				transfers.add(ft);
 				ft.start();
 			}
+			else if(tmp.equals("NAK"))
+				System.out.println("Host declined receiving file.");
 		} 
-		catch (IOException e) { e.printStackTrace(); }
+		catch (IOException e) { System.out.println("Stream error"); }
 	}
 	
-	public void pull(Integer[] files)
+	public void pull(String file)
 	{
 		try
 		{
-			Socket socket = new Socket();
-			socket.setSoTimeout(TIMEOUT);
-			socket.connect(new InetSocketAddress(ip, port));
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			
 			out.println("Pull");
-			out.println(files.length);
+			out.println(file);
 			
-			ArrayList<File> filesToRcv = new ArrayList<File>();
-			
-			for(int i = 0; i<files.length; i++)
+			String response = in.readLine();
+			if(response.equals("ACK")) 
 			{
-				out.println(files[i]);
-				String response = in.readLine();
-				if(response.equals("ACK")) 
-				{
-					String fname = in.readLine();
-					filesToRcv.add(new File(fname));
-				}
-				else 
-					System.out.println("There is no file with index: "+files[i]);
-			}
-			
-			if(!filesToRcv.isEmpty())
-			{
-				int transferport = (int)(Math.random()*40000)+20000;
-				
-				out.println("ACK "+transferport);
-				socket.close();
-					
-				for(int i = 0; i<filesToRcv.size(); i++)
-				{
-					FileTransfer ft = new FileTransfer(transferport+i, new File(Main.DIRPATH+"/"+filesToRcv.get(i)), FileTransfer.command.RECEIVE);
-					ft.start();
-				}
+				int transferport = 60001;
+				FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE);
+				transfers.add(ft);
+				ft.start();
+
+				out.println("ACK1");
 			}
 			else 
-			{
-				out.println("NAK");
-				System.out.println("None file index was correct.");
-				socket.close();
-			}
+				System.out.println("There is no such file at the host.");
 		}
-		catch (IOException e)
-		{
-			
-		}
+		catch (IOException e) { System.out.println(); }
 	}
 	
 }

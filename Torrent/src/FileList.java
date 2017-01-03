@@ -41,68 +41,35 @@ public class FileList {
 		refreshList();
 		for(int i = 0; i<fileList.size(); i++)
 		{
-			double size = fileList.get(i).length();
-			if(size < 1024)
-			{
-				System.out.println(i+". "+fileList.get(i).getName()+" "+size+" B");
-				continue;
-			}
-			size = size/1024;
-			if(size < 1024 && size > 1)
-			{
-				System.out.println(i+". "+fileList.get(i).getName()+" "+
-						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" KB");
-				continue;
-			}
-			size = size/1024;
-			if(size > 1)
-			{
-				System.out.println(i+". "+fileList.get(i).getName()+" "+
-						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" MB");
-				continue;
-			}				
+			System.out.println(fileList.get(i).getName()+" "+getFileSize(fileList.get(i)));				
 		}	
 	}
 	
-	public String sendFiles()
+	public static String getFileSize(File file)
 	{
-		String list = "File list from host: "+HostListener.getIp()+"\n";
-		for(int i = 0; i<fileList.size(); i++)
+		double size = file.length();
+		if(size < 1024)
+			return size+" B\n";
+		
+		size = size/1024;
+		if(size < 1024 && size > 1)
+			return new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)+" KB\n";
+		
+		else
 		{
-			double size = fileList.get(i).length();
-			if(size < 1024)
-			{
-				list += (i+". "+fileList.get(i).getName()+" "+size+" B\n");
-				continue;
-			}
 			size = size/1024;
-			if(size < 1024 && size > 1)
-			{
-				list += (i+". "+fileList.get(i).getName()+" "+
-						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" KB\n");
-				continue;
-			}
-			size = size/1024;
-			if(size > 1)
-			{
-				list += (i+". "+fileList.get(i).getName()+" "+
-						(new BigDecimal(size).setScale(2, RoundingMode.HALF_UP))+" MB\n");
-				continue;
-			}		
+			return new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)+" MB\n";
 		}
-		return list;
 	}
 	
-	public File getFile(int index)
+	public File getFile(String filename)
 	{
-		try
+		refreshList();
+		for(File f : fileList)
 		{
-			return fileList.get(index);
+			if(f.getName().equals(filename))
+				return f;
 		}
-		catch(IndexOutOfBoundsException e)
-		{
-			return null;
-		}
-		
+		return null;
 	}
 }
