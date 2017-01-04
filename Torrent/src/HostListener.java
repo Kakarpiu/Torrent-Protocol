@@ -75,6 +75,7 @@ public class HostListener extends Thread{
 	{
 		ack = a;
 		ackport = p;
+		System.out.println(ack+" = "+a+"\n"+ackport+" = "+p);
 		
 		synchronized (instance)
 		{
@@ -98,7 +99,7 @@ public class HostListener extends Thread{
 					{
 						try 
 						{
-							wait(15000);
+							wait();
 						} catch (InterruptedException e) { System.out.println("Error while waiting for response from user"); }
 					}
 					

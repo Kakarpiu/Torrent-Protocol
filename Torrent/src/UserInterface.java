@@ -173,7 +173,9 @@ public class UserInterface extends Thread{
 						else
 						{
 							portEst = true;
+							System.out.println("portEst true");
 							HostListener.ackConnection("ACK", portnumber);
+							System.out.println("After ackConnection");
 						}
 					} 
 					catch (NumberFormatException e) { System.out.println("Input is not a integer number."); }
