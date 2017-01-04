@@ -97,10 +97,10 @@ public class HostListener extends Thread{
 					
 					synchronized (instance)
 					{
-						try 
+						try
 						{
 							wait();
-						} catch (InterruptedException e) { System.out.println("Error while waiting for response from user"); }
+						} catch (InterruptedException e) { e.printStackTrace(); }
 					}
 					
 					if(ack == null)
