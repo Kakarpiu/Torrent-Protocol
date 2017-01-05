@@ -44,9 +44,25 @@ public class FileList {
 		
 		for(int i = 0; i<fileList.size(); i++)
 		{
-			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i))+" "+checkSum(fileList.get(i))+"\n";
+			list += fileList.get(i).getName()+","+getFileSize(fileList.get(i))+","+checkSum(fileList.get(i))+",";
 		}
 		return list;
+	}
+	
+	public void printList()
+	{
+		String[] formatdata = showFiles().toString().split(",");
+		
+		for(int i = 0; i<formatdata.length; i++)
+		{
+			if(i % 3 == 0)
+				System.out.printf("%-60s", formatdata[i]);
+			if(i % 3 == 1)
+				System.out.printf("%-11s", formatdata[i]);
+			if(i % 3 == 2)
+				System.out.printf("%-32s\n", formatdata[i]);
+		}
+		System.out.println();
 	}
 	
 	public static String getFileSize(File file)

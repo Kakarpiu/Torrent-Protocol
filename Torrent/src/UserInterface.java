@@ -77,9 +77,9 @@ public class UserInterface extends Thread{
 									
 								Connection newCon = new Connection(socket);
 							}	
-							catch (IOException e){ System.out.println("Could not create socket.");  }
+							catch (IOException e){ System.out.println("Could not create socket."); }
 						}	
-						catch (IOException e){ System.out.println("Error while connecting. Check host address."); }
+						catch (IOException | IllegalArgumentException e){ System.out.println("Error while connecting. Check host address."); }
 					}
 					catch (NumberFormatException e) { System.out.println("Port is not a Integer number."); }
 				}
@@ -122,7 +122,7 @@ public class UserInterface extends Thread{
 			
 			case "mylist" :
 			{
-				System.out.println(fileList.showFiles());
+				fileList.printList();
 				break;
 			}
 			
@@ -130,9 +130,17 @@ public class UserInterface extends Thread{
 			{
 				if(peers.isEmpty())
 					System.out.println("No connections made");
-				for(Connection c : peers)
+				else
 				{
-					c.getFileList();
+					for(Connection c : peers)
+					{
+						c.getFileList();
+					}
+					for(Connection c : peers)
+					{
+						c.printList();
+					}
+					
 				}
 				break;
 			}

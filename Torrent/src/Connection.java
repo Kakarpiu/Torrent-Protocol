@@ -15,6 +15,7 @@ public class Connection extends Thread{
 	
 	// FILETRANSFER LIST
 	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
+	private StringBuffer list = new StringBuffer();
 	
 	public Connection(Socket s) // When connecting
 	{
@@ -65,7 +66,7 @@ public class Connection extends Thread{
 			{
 				String command = in.readLine();
 				receive(command);
-			} catch (IOException | NullPointerException e) { System.out.println("Host "+idnumber+" disconnected"); break;}			
+			} catch (IOException | NullPointerException e) { System.out.println("Host "+idnumber+" disconnected"); UserInterface.peers.remove(this); this.interrupt(); break; }			
 		}
 	}	
 	
@@ -121,7 +122,6 @@ public class Connection extends Thread{
 			{
 				String list = UserInterface.fileList.showFiles();
 				out.println("SendList");
-				out.println("Host with id: "+idnumber);
 				out.println(list);
 				out.println("END");
 				break;
@@ -133,8 +133,13 @@ public class Connection extends Thread{
 				try 
 				{
 					while(!(s = in.readLine()).equals("END"))
-						System.out.println(s);
-				} catch (IOException e) { System.out.println("Error while sending list"); }
+						list.append(s+"\n");
+					synchronized(this)
+					{
+						notify();
+					}
+				} 
+				catch (IOException e) { System.out.println("Error while sending list"); }
 				break;
 			}
 			
@@ -173,7 +178,33 @@ public class Connection extends Thread{
 	
 	public void getFileList()
 	{
+		list = new StringBuffer();
 		out.println("GetList");
+		synchronized (this)
+		{
+			try 
+			{
+				wait(15000);
+			} 
+			catch (InterruptedException e) { e.printStackTrace(); }
+		}
+	}
+	
+	public void printList()
+	{
+		System.out.println("List from host: "+idnumber);
+		String[] formatdata = list.toString().split(",");
+		
+		for(int i = 0; i<formatdata.length; i++)
+		{
+			if(i % 3 == 0)
+				System.out.printf("%-60s", formatdata[i]);
+			if(i % 3 == 1)
+				System.out.printf("%-11s", formatdata[i]);
+			if(i % 3 == 2)
+				System.out.printf("%-32s\n", formatdata[i]);
+		}
+		System.out.println();
 	}
 	
 	

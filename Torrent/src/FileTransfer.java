@@ -102,7 +102,7 @@ public class FileTransfer extends Thread{
 			System.out.println("Receiving file "+file.getName());
 			try
 			{
-				while((count = fileIN.read(buffer)) > 0)
+				while((count = receive.read(buffer)) > 0)
 				{
 					fileOUT.write(buffer, 0, count);
 					n++;
