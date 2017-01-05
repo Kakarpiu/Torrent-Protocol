@@ -6,6 +6,7 @@ import java.net.*;
 public class Connection extends Thread{
 	
 	private InetAddress ip;
+	private int connectionPort;
 	private int idnumber;
 	
 	private Socket connectionSocket = null;
@@ -19,6 +20,7 @@ public class Connection extends Thread{
 	{
 		connectionSocket = s;
 		ip = connectionSocket.getInetAddress();
+		connectionPort = connectionSocket.getPort();
 		try
 		{
 			out = new PrintWriter(connectionSocket.getOutputStream(), true);
@@ -62,7 +64,7 @@ public class Connection extends Thread{
 			try 
 			{
 				String command = in.readLine();
-				System.out.println("CMD"+command);
+				System.out.println(command);
 				receive(command);
 			} catch (IOException | NullPointerException e) { System.out.println("Host "+idnumber+" disconnected"); break;}			
 		}
@@ -80,9 +82,7 @@ public class Connection extends Thread{
 					String filesize = in.readLine();
 					System.out.println("Peer with ID: "+idnumber+" is pushing "+filename+" "+filesize);
 					
-					int transferport = 60001;
-						
-					FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
+					FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
 					transfers.add(ft);
 					ft.start();
 				}
@@ -203,8 +203,7 @@ public class Connection extends Thread{
 		out.println("Pull");
 		out.println(file);
 		
-		int transferport = 60001;
-		FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE);
+		FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE);
 		transfers.add(ft);
 		ft.start();
 	}

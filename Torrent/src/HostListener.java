@@ -84,6 +84,10 @@ public class HostListener extends Thread{
 					Connection newCon = new Connection(socket, idnumber);
 				}
 				break;
+				case "Reconnect" :
+				{
+					
+				}
 			}
 		}
 		catch (IOException e) { System.out.println("Error while receiving from stream"); }

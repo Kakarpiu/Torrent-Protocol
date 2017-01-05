@@ -10,6 +10,7 @@ public class UserInterface extends Thread{
 	protected static ArrayList<Connection> peers = new ArrayList<Connection>();
 	protected static boolean portEstablished = false;
 	protected static FileList fileList = FileList.getInstance(Main.DIRPATH);
+	
 	private int TIMEOUT = 30000;
 	
 	private UserInterface()

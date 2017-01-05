@@ -6,8 +6,8 @@ public class FileTransfer extends Thread{
 	
 	// Sockets 
 	private Socket socket = null;
-	private ServerSocket receiveSock = null;
-	private int transferport = 0;
+	private InetAddress ip = null;
+	private int transferport = 60001;
 	
 	// Transfer streams
 	private OutputStream send = null;
@@ -28,13 +28,13 @@ public class FileTransfer extends Thread{
 	public FileTransfer(Socket socket, File file, command cmd)
 	{
 		this.socket = socket;
+		ip = socket.getInetAddress();
 		this.file = file;
 		this.cmd = cmd;
 	}
 	
-	public FileTransfer(int port, File file, command cmd)
+	public FileTransfer(File file, command cmd)
 	{
-		transferport = port;
 		this.file = file;
 		this.cmd = cmd;
 	}
@@ -45,15 +45,23 @@ public class FileTransfer extends Thread{
 			push();
 		else if(cmd == command.RECEIVE)
 		{
-			try 
-			{
-				ServerSocket receiveSock = new ServerSocket(transferport) ;
-				socket = receiveSock.accept();
-				receiveSock.close();
+			
+				getSocket();
 				receive();
-			}
-			catch (IOException e) { System.out.println("Error while creating socket."); }
+			
 		}	
+	}
+	
+	public void getSocket()
+	{
+		try 
+		{
+			ServerSocket receiveSock = new ServerSocket(transferport);
+			socket = receiveSock.accept();
+			ip = socket.getInetAddress();
+			receiveSock.close();
+		}
+		catch (IOException e) { System.out.println("Error while creating socket."); }
 	}
 	
 	public void push()
@@ -67,7 +75,7 @@ public class FileTransfer extends Thread{
 			System.out.println("Pushing file: "+file.getName());
 			try
 			{
-				while((count = fileIN.read(buffer)) > -1)
+				while((count = fileIN.read(buffer)) > 0)
 				{
 					send.write(buffer, 0, count);
 					n++;
@@ -75,7 +83,7 @@ public class FileTransfer extends Thread{
 				System.out.println(file.getName()+" pushed");
 				socket.close();
 			}
-			catch (IOException e) { System.out.println("Error while sending file. Sent "+n*bufferSizeKB+" KB"); reconnect(); }
+			catch (IOException | NullPointerException e) { System.out.println("Error while sending file. Sent "+n*bufferSizeKB+" KB"); reconnect("push"); }
 		}
 		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	 }
@@ -91,7 +99,7 @@ public class FileTransfer extends Thread{
 			System.out.println("Receiving file "+file.getName());
 			try
 			{
-				while((count = receive.read(buffer)) > -1)
+				while((count = fileIN.read(buffer)) > 0)
 				{
 					fileOUT.write(buffer, 0, count);
 					n++;
@@ -99,13 +107,40 @@ public class FileTransfer extends Thread{
 				System.out.println(file.getName()+" received");
 				socket.close();
 			}
-			catch (IOException e) { System.out.println("Error while receiving file. Received "+n*bufferSizeKB+" KB"); }
+			catch (IOException | NullPointerException e) { System.out.println("Error while receiving file. Received "+n*bufferSizeKB+" KB"); reconnect("recv"); }
 		}
 		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	}
 	
-	public void reconnect()
+	public void reconnect(String method)
 	{
-		System.out.println("Trying to restart transmission");
+		System.out.println("Trying to restart transfer");
+		if(method.equals("push"))
+		{
+			try 
+			{
+				socket.close();
+				do 
+				{
+					try
+					{
+						socket = new Socket(ip, transferport);
+						push();
+					}
+					catch (IOException e) { }
+				} while(!socket.isConnected());
+			} 
+			catch (IOException e) { }
+		}
+		
+		else if(method.equals("recv"))
+		{
+			try 
+			{
+				socket.close();
+				getSocket();
+			} 
+			catch (IOException e) { System.out.println("Error while closing socket."); }
+		}
 	}
 }
