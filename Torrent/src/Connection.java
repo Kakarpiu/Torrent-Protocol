@@ -64,7 +64,6 @@ public class Connection extends Thread{
 			try 
 			{
 				String command = in.readLine();
-				System.out.println(command);
 				receive(command);
 			} catch (IOException | NullPointerException e) { System.out.println("Host "+idnumber+" disconnected"); break;}			
 		}
@@ -105,16 +104,24 @@ public class Connection extends Thread{
 					ft.start();
 					}
 					else
-						out.println("NAK");
+					{
+						out.println("Nofile");
+					}
 				}
 				catch (IOException e) { System.out.println(); }
 				break;
+			}
+			
+			case "Nofile" :
+			{
+				System.out.println("No such file.");
 			}
 			
 			case "GetList" :
 			{
 				String list = UserInterface.fileList.showFiles();
 				out.println("SendList");
+				out.println("Host with id: "+idnumber);
 				out.println(list);
 				out.println("END");
 				break;
@@ -140,6 +147,7 @@ public class Connection extends Thread{
 				} catch (IOException e) { System.out.println("Error while disconnecting."); }
 				break;
 			}
+			
 		}
 	}
 	
@@ -165,18 +173,7 @@ public class Connection extends Thread{
 	
 	public void getFileList()
 	{
-		try 
-		{
-			out.println("GetList");
-			String response = in.readLine();
-			
-			if(response != null)
-				System.out.println(response);
-			else
-				System.out.println("List is empty.");
-
-		} 
-		catch (IOException e) { System.out.println("Couldn't get list."); }
+		out.println("GetList");
 	}
 	
 	

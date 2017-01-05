@@ -48,7 +48,6 @@ public class FileTransfer extends Thread{
 			
 				getSocket();
 				receive();
-			
 		}	
 	}
 	
@@ -83,7 +82,7 @@ public class FileTransfer extends Thread{
 				System.out.println(file.getName()+" pushed");
 				socket.close();
 			}
-			catch (IOException | NullPointerException e) { System.out.println("Error while sending file. Sent "+n*bufferSizeKB+" KB"); reconnect("push"); }
+			catch (IOException | NullPointerException e) { System.out.println("Error while sending file. Sent "+n*bufferSizeKB+" KB "+e.toString()); reconnect("push"); }
 		}
 		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	 }
@@ -107,7 +106,7 @@ public class FileTransfer extends Thread{
 				System.out.println(file.getName()+" received");
 				socket.close();
 			}
-			catch (IOException | NullPointerException e) { System.out.println("Error while receiving file. Received "+n*bufferSizeKB+" KB"); reconnect("recv"); }
+			catch (IOException | NullPointerException e) { System.out.println("Error while receiving file. Received "+n*bufferSizeKB+" KB "+e.toString()); reconnect("recv"); }
 		}
 		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	}

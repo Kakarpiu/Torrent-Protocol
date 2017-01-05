@@ -1,4 +1,5 @@
 import java.io.*;
+import java.security.*;
 import java.math.*;
 import java.util.*;
 
@@ -43,7 +44,7 @@ public class FileList {
 		
 		for(int i = 0; i<fileList.size(); i++)
 		{
-			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i));
+			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i))+" "+checkSum(fileList.get(i));
 		}
 		return list;
 	}
@@ -52,17 +53,54 @@ public class FileList {
 	{
 		double size = file.length();
 		if(size < 1024)
-			return size+" B\n";
+			return size+" B";
 		
 		size = size/1024;
 		if(size < 1024 && size > 1)
-			return (new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)).toString()+" KB\n";
+			return (new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)).toString()+" KB";
 		
 		else
 		{
 			size = size/1024;
-			return (new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)).toString()+" MB\n";
+			return (new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)).toString()+" MB";
 		}
+	}
+	
+	public String checkSum(File file) 
+	{
+		String checksum = "";
+		
+		try
+		{
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] dataBytes= new byte[1024];
+			
+			try
+			{
+				FileInputStream fis = new FileInputStream(file);
+				 
+				int nread = 0;
+		        try 
+		        {
+					while ((nread = fis.read(dataBytes)) != -1) 
+					  md.update(dataBytes, 0, nread);
+				} 
+		        catch (IOException e) { System.out.println("Error while generating checksum."); return "Checksum err.";}
+		        
+		        byte[] mdbytes = md.digest();
+
+		        StringBuffer sb = new StringBuffer();
+		        for (int i = 0; i < mdbytes.length; i++) {
+		          sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
+		        }
+
+		        checksum = sb.toString();
+			}
+			catch (FileNotFoundException e1) { System.out.println("No such file"); return "Checksum err.";}
+		} 
+		catch (NoSuchAlgorithmException e1) { e1.printStackTrace(); return "Checksum err.";}
+		
+		return checksum+"\n";		
 	}
 	
 	public File getFile(String filename)

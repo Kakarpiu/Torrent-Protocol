@@ -16,24 +16,6 @@ public class UserInterface extends Thread{
 	private UserInterface()
 	{
 		console = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("What port do you want to listen for connections on? Choose between 10000 and 20000");
-		
-		while(true)
-		{
-			try 
-			{
-				int port = Integer.parseInt(console.readLine());
-				if(port < 10000 && port > 20000)
-					System.out.println("Choose between 10000 and 20000.");
-				else
-				{
-					Main.PORT = port;
-					break;
-				}
-			}
-			catch (NumberFormatException e) { System.out.println("Input needs to be an Integer number beetwen 10000 and 20000"); }
-			catch (IOException e) { System.out.println("Error while reading from console. Restart program"); System.exit(0); }
-		}
 	}	
 	
 	public static UserInterface getInstance()
@@ -148,7 +130,6 @@ public class UserInterface extends Thread{
 			{
 				for(Connection c : peers)
 				{
-					System.out.println("Host with id: "+c.getID());
 					c.getFileList();
 				}
 				break;
@@ -168,9 +149,15 @@ public class UserInterface extends Thread{
 			
 			case "push" :
 			{
-				if(argsCount == 2)
+				if(argsCount > 1)
 				{
-					File file = fileList.getFile(arguments[1]);
+					StringBuffer filename = new StringBuffer();
+					for(int i = 1; i<arguments.length; i++)
+					{
+						filename.append(arguments[i]);
+					}
+					File file = fileList.getFile(filename.toString());
+					System.out.println(filename.toString());
 					if(file != null)
 					{
 						System.out.println("What host do you want to send files to?");
@@ -195,15 +182,21 @@ public class UserInterface extends Thread{
 						System.out.println("No such file");				
 				}
 				if(argsCount < 2)
-					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npush index...");
+					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npush file.");
 				break;	
 			}
 			
 			case "pull" :
 			{
-				if(argsCount == 2)
+				if(argsCount > 1)
 				{
-					String filename = arguments[1];
+					StringBuffer filename = new StringBuffer();
+					filename.append(arguments[1]);
+					for(int i = 2; i<arguments.length; i++)
+					{
+						filename.append(" "+arguments[i]);
+					}
+					System.out.println(filename.toString());
 					System.out.println("What host do you want to pull files from?");
 					String temp;
 					try
@@ -214,7 +207,7 @@ public class UserInterface extends Thread{
 							int conId = Integer.parseInt(temp);
 							Connection c = getConnection(conId);
 							if(c != null)
-								c.pull(filename);
+								c.pull(filename.toString());
 							else
 								System.out.println("No connection with number: "+conId);
 						}
@@ -224,7 +217,7 @@ public class UserInterface extends Thread{
 					
 				}
 				if(argsCount < 2)
-					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npull index...");
+					System.out.println("Wrong number of arguments. This command takes 1 or more arguments in form of. \npull file.");
 				break;
 			}
 			

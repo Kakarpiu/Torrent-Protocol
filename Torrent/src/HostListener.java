@@ -22,7 +22,7 @@ public class HostListener extends Thread{
 		{
 			serverSocket = new ServerSocket(port);
 			this.setName("HostListener");
-			System.out.println("Host Listens on port number: "+port);
+			System.out.println("HostListener ready.");
 		} 
 		catch (IOException e) { System.out.println("Port might be choosen by another application. Restart program and choose another port."); Main.destroyInstance(); }       
 	}
