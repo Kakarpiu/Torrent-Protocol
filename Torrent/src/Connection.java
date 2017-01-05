@@ -3,66 +3,144 @@ import java.io.*;
 import java.net.*;
 
 
-public class Connection {
-
-	private int TIMEOUT = 30000;
+public class Connection extends Thread{
 	
 	private InetAddress ip;
 	private int idnumber;
-		
+	
 	private Socket connectionSocket = null;
 	private PrintWriter out = null;
 	private BufferedReader in = null;
-	private Listener listener = null;
 	
 	// FILETRANSFER LIST
 	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
 	
-	public Connection(InetAddress i, int p, int id) // When connecting
+	public Connection(Socket s) // When connecting
 	{
-		ip = i;
-		idnumber = id;
-		
-		connectionSocket = new Socket();
+		connectionSocket = s;
+		ip = connectionSocket.getInetAddress();
 		try
 		{
 			out = new PrintWriter(connectionSocket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-			try
-			{
-				connectionSocket.setSoTimeout(TIMEOUT);
-				connectionSocket.connect(new InetSocketAddress(ip, p));
-				listener = new Listener(connectionSocket, out, in, transfers);
-				listener.start();
-			}	
-			catch (IOException e){ System.out.println("Could not connect."); }
-		} 
+			
+			idnumber = Integer.parseInt(in.readLine());
+			out.println("ACK");
+			System.out.println("Connection with IP: "+ip.toString()+" established. ID number: "+idnumber);
+			UserInterface.peers.add(this);
+			this.start();
+		}	
 		catch (IOException e){ System.out.println("Could not create streams."); }
+		catch (NumberFormatException e) { System.out.println("Could not establish connection"); }
 	}
 	
-	public Connection(int p, int id) // When receiving
+	public Connection(Socket s, int id) // When receiving
 	{
-		ServerSocket tmp;
+		connectionSocket = s;
+		idnumber = id;	
 		try
 		{
-			tmp = new ServerSocket(p);
-			connectionSocket = tmp.accept();
-			try
+			ip = connectionSocket.getInetAddress();
+			out = new PrintWriter(connectionSocket.getOutputStream(), true);
+			in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+			
+			out.println(id);
+			if(in.readLine().equals("ACK"))
 			{
-				out = new PrintWriter(connectionSocket.getOutputStream(), true);
-				in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-				idnumber = id;
-				listener = new Listener(connectionSocket, out, in, transfers);
-				listener.start();
+				System.out.println("Connection with IP: "+ip.toString()+" established. ID number: "+idnumber);
+				UserInterface.peers.add(this);
+				this.start();
+			}
+		}
+		catch (IOException e) { System.out.println("Couldn't create streams."); }
+	}
+	
+	public void run()
+	{
+		while(true)
+		{
+			try 
+			{
+				String command = in.readLine();
+				System.out.println("CMD"+command);
+				receive(command);
+			} catch (IOException | NullPointerException e) { System.out.println("Host "+idnumber+" disconnected"); break;}			
+		}
+	}	
+	
+	public void receive(String command)
+	{
+		switch (command)
+		{
+			case "Push" :
+			{
+				try 
+				{
+					String filename = in.readLine();
+					String filesize = in.readLine();
+					System.out.println("Peer with ID: "+idnumber+" is pushing "+filename+" "+filesize);
+					
+					int transferport = 60001;
+						
+					FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
+					transfers.add(ft);
+					ft.start();
+				}
+				catch (IOException e) { System.out.println("Stream exception."); }
+				break;
+			}
+			
+			case "Pull" :
+			{
 				try
 				{
-					tmp.close();
+					String filename = in.readLine();
+					File file = UserInterface.fileList.getFile(filename);
+					if(file != null)
+					{
+					int transferport = 60001;
+							
+					FileTransfer ft = new FileTransfer(new Socket(connectionSocket.getInetAddress(), transferport), file, FileTransfer.command.PUSH);
+					transfers.add(ft);
+					ft.start();
+					}
+					else
+						out.println("NAK");
 				}
-				catch (IOException e) { System.out.println("Error while closing listining socket."); }
+				catch (IOException e) { System.out.println(); }
+				break;
 			}
-			catch (IOException e) { System.out.println("Couldn't create streams."); }
-		} 
-		catch (IOException e) { System.out.println("Couldn't create socket."); }
+			
+			case "GetList" :
+			{
+				String list = UserInterface.fileList.showFiles();
+				out.println("SendList");
+				out.println(list);
+				out.println("END");
+				break;
+			}
+			
+			case "SendList" :
+			{
+				String s;
+				try 
+				{
+					while(!(s = in.readLine()).equals("END"))
+						System.out.println(s);
+				} catch (IOException e) { System.out.println("Error while sending list"); }
+				break;
+			}
+			
+			case "Disconnect" :
+			{
+				try 
+				{
+					connectionSocket.close();
+					System.out.println("Peer disconnected.");
+				} catch (IOException e) { System.out.println("Error while disconnecting."); }
+				break;
+			}
+		}
 	}
 	
 	public InetAddress getIp()
@@ -70,7 +148,7 @@ public class Connection {
 		return ip;
 	}
 	
-	public int getId()
+	public int getID()
 	{
 		return idnumber;
 	}
@@ -80,25 +158,23 @@ public class Connection {
 		return connectionSocket.isConnected();
 	}
 	
-	public void setTimeout(int i)
-	{
-		TIMEOUT = i*1000;
-	}
-	
 	public void disconnect()
 	{
-		out.println("dis");
+		out.println("Disconnect");
 	}
 	
 	public void getFileList()
 	{
 		try 
 		{
-			out.println("Get List");
+			out.println("GetList");
 			String response = in.readLine();
 			
-			while(response != null)
+			if(response != null)
 				System.out.println(response);
+			else
+				System.out.println("List is empty.");
+
 		} 
 		catch (IOException e) { System.out.println("Couldn't get list."); }
 	}
@@ -112,42 +188,25 @@ public class Connection {
 			out.println(file.getName());
 			out.println(FileList.getFileSize(file));
 			
-			String tmp = in.readLine();
-			if(tmp.equals("ACK"))
-			{
-				int transferport = 60001;
+			int transferport = 60001;
 				
-				FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
-				transfers.add(ft);
-				ft.start();
-			}
-			else if(tmp.equals("NAK"))
-				System.out.println("Host declined receiving file.");
+			FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
+			transfers.add(ft);
+			ft.start();
+			
 		} 
 		catch (IOException e) { System.out.println("Stream error"); }
 	}
 	
 	public void pull(String file)
 	{
-		try
-		{
-			out.println("Pull");
-			out.println(file);
-			
-			String response = in.readLine();
-			if(response.equals("ACK")) 
-			{
-				int transferport = 60001;
-				FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE);
-				transfers.add(ft);
-				ft.start();
-
-				out.println("ACK1");
-			}
-			else 
-				System.out.println("There is no such file at the host.");
-		}
-		catch (IOException e) { System.out.println(); }
+		out.println("Pull");
+		out.println(file);
+		
+		int transferport = 60001;
+		FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE);
+		transfers.add(ft);
+		ft.start();
 	}
 	
 }

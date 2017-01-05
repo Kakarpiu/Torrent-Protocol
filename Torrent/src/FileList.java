@@ -42,8 +42,9 @@ public class FileList {
 		String list = "";
 		
 		for(int i = 0; i<fileList.size(); i++)
+		{
 			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i));
-		
+		}
 		return list;
 	}
 	
@@ -55,12 +56,12 @@ public class FileList {
 		
 		size = size/1024;
 		if(size < 1024 && size > 1)
-			return new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)+" KB\n";
+			return (new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)).toString()+" KB\n";
 		
 		else
 		{
 			size = size/1024;
-			return new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)+" MB\n";
+			return (new BigDecimal(size).setScale(2, RoundingMode.HALF_UP)).toString()+" MB\n";
 		}
 	}
 	

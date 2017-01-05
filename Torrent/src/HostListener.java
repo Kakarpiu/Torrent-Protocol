@@ -61,26 +61,10 @@ public class HostListener extends Thread{
 					receive(clientSocket, in, out);
 				}
 				catch (IOException e) { System.out.println("Could not create stream."); }
-				finally
-				{
-					clientSocket.close();
-				}
 			}
 			catch (IOException e) { System.out.println("Could not create socket."); }	
 			
 		}	
-	}
-	
-	public static void ackConnection(String a, int p)
-	{
-		ack = a;
-		ackport = p;
-		System.out.println(ack+" = "+a+"\n"+ackport+" = "+p);
-		
-		synchronized (instance)
-		{
-			instance.notify();
-		}
 	}
 	
 	public void receive(Socket socket, BufferedReader in, PrintWriter out)
@@ -93,48 +77,13 @@ public class HostListener extends Thread{
 			{
 				case "Connect" :
 				{
-					System.out.println("Peer with IP: "+socket.getInetAddress()+" is trying to connect. \nType ack to accept connection or nak to decline");
+					System.out.println("Peer with IP: "+socket.getInetAddress()+" is connecting.");
 					
-					synchronized (instance)
-					{
-						try
-						{
-							wait();
-						} catch (InterruptedException e) { e.printStackTrace(); }
-					}
+					int idnumber = (int)(Math.random()*1000000)+1;
 					
-					if(ack == null)
-					{
-						System.out.println("User response timeout.");
-						socket.close();
-					}
-					
-					if(ack.equals("ACK"))
-					{
-						ack = null;
-						int portnumber = ackport;
-						ackport = 0;
-						
-						int idnumber = (int)(Math.random()*1000000)+1;
-						Connection newCon = new Connection(portnumber, idnumber);
-						out.println("ACK0");
-						out.println(portnumber);
-						out.println(idnumber);
-
-						if(in.readLine().equals("ACK1"))
-						{
-							UserInterface.peers.add(newCon);
-							System.out.println("Connection established");
-						}
-						else
-							System.out.println("Couldn't establish connection");
-					}
-					else
-					{
-						System.out.println("Connection decliend");
-					}
-					break;
+					Connection newCon = new Connection(socket, idnumber);
 				}
+				break;
 			}
 		}
 		catch (IOException e) { System.out.println("Error while receiving from stream"); }

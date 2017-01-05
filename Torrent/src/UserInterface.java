@@ -15,7 +15,7 @@ public class UserInterface extends Thread{
 	private UserInterface()
 	{
 		console = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("What port do you want to listen on?");
+		System.out.println("What port do you want to listen for connections on? Choose between 10000 and 20000");
 		
 		while(true)
 		{
@@ -87,49 +87,18 @@ public class UserInterface extends Thread{
 							{
 								PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 								BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-								try 
-								{
-									// First handshake
-									String handshake;
-									out.println("Connect");
+								
 									
-									// Second handshake
-									handshake = in.readLine();
-									if(handshake.equals("ACK0"))
-									{
-										int peerport = Integer.parseInt(in.readLine());
-										int idnumber = Integer.parseInt(in.readLine());
-										Connection newCon = new Connection(socket.getInetAddress(), peerport, idnumber);
-										
-										if(newCon.isConnected())
-										{
-											peers.add(newCon);
-											out.println("ACK1");
-											System.out.println("Connection established. ID number: "+idnumber);
-										}
-										else
-										{
-											out.println("NAK");
-											System.out.println("Couldn't establish connection.");
-										}
-									}
-									else if(handshake.equals("NAK"))
-									{
-										System.out.println("Peer declined connection");
-									}
-								}	
-								catch (IOException | NumberFormatException e){	System.out.println("Error while receiving files."); }
-								finally
-								{
-									socket.close();
-								}
+								String handshake;
+								out.println("Connect");
+									
+								Connection newCon = new Connection(socket);
 							}	
 							catch (IOException e){ System.out.println("Could not create socket.");  }
 						}	
 						catch (IOException e){ System.out.println("Error while connecting. Check host address."); }
 					}
 					catch (NumberFormatException e) { System.out.println("Port is not a Integer number."); }
-					
 				}
 				break;
 			}
@@ -156,40 +125,17 @@ public class UserInterface extends Thread{
 					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \ndisconnect id");
 				break;
 			}
-			
-			case "ack" : 
+
+			case "getconns" :
 			{
-				System.out.println("What port number do you want to use for listening? Choose between 20000 and 60000.");
-				boolean portEst = false;
-				
-				while(!portEst)
+				String list = "";
+				for(Connection c : peers)
 				{
-					int portnumber;
-					try 
-					{
-						portnumber = Integer.parseInt(console.readLine());
-						if(portnumber < 20000 && portnumber > 60000)
-							System.out.println("Choose between 20001 and 60000");
-						else
-						{
-							portEst = true;
-							System.out.println("portEst true");
-							HostListener.ackConnection("ACK", portnumber);
-							System.out.println("After ackConnection");
-						}
-					} 
-					catch (NumberFormatException e) { System.out.println("Input is not a integer number."); }
-					catch (IOException e) { System.out.println("Error while reading from console."); }
+					list += "IP: "+c.getIp().toString()+" number: "+c.getID()+"\n";
 				}
+				System.out.println(list);
 				break;
 			}
-			
-			case "nak" :
-			{
-				HostListener.ackConnection("NAK", 0);
-				break;
-			}
-			
 			
 			case "mylist" :
 			{
@@ -199,21 +145,11 @@ public class UserInterface extends Thread{
 			
 			case "getlist" :
 			{
-				if(argsCount == 2)
+				for(Connection c : peers)
 				{
-					try
-					{
-						int conId = Integer.parseInt(arguments[1]);
-						Connection c = getConnection(conId);
-						if(c != null)
-							c.getFileList();
-						else
-							System.out.println("No connection with number: "+conId);
-					}
-					catch(NumberFormatException e) { System.out.println("No connection with this id number"); }
+					System.out.println("Host with id: "+c.getID());
+					c.getFileList();
 				}
-				else
-					System.out.println("Wrong number of arguments. This command takes 1 argument in form of. \ngetlist id");
 				break;
 			}
 			
@@ -300,7 +236,7 @@ public class UserInterface extends Thread{
 	{
 		for(Connection c : peers)
 		{
-			if(c.getId() == id)
+			if(c.getID() == id)
 				return c;
 		}
 		return null;
