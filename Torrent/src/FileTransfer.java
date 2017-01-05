@@ -4,6 +4,8 @@ import java.net.*;
 
 public class FileTransfer extends Thread{
 	
+	private Connection mymaster = null;
+	
 	// Sockets 
 	private Socket socket = null;
 	private InetAddress ip = null;
@@ -25,18 +27,20 @@ public class FileTransfer extends Thread{
 	private int bufferSizeKB = 8;
 	private byte[] buffer = new byte[bufferSizeKB*1024];
 	
-	public FileTransfer(Socket socket, File file, command cmd)
+	public FileTransfer(Socket socket, File file, command cmd, Connection c)
 	{
 		this.socket = socket;
 		ip = socket.getInetAddress();
 		this.file = file;
 		this.cmd = cmd;
+		mymaster = c;
 	}
 	
-	public FileTransfer(File file, command cmd)
+	public FileTransfer(File file, command cmd, Connection c)
 	{
 		this.file = file;
 		this.cmd = cmd;
+		mymaster = c;
 	}
 	
 	public void run()
@@ -114,6 +118,9 @@ public class FileTransfer extends Thread{
 	public void reconnect(String method)
 	{
 		System.out.println("Trying to restart transfer");
+//		if(!mymaster.isConnected())
+//			mymaster.reconnect();
+//		
 		if(method.equals("push"))
 		{
 			try 
@@ -126,7 +133,7 @@ public class FileTransfer extends Thread{
 						socket = new Socket(ip, transferport);
 						push();
 					}
-					catch (IOException e) { }
+					catch (IOException e) { e.toString(); }
 				} while(!socket.isConnected());
 			} 
 			catch (IOException e) { }
@@ -138,6 +145,7 @@ public class FileTransfer extends Thread{
 			{
 				socket.close();
 				getSocket();
+				receive();
 			} 
 			catch (IOException e) { System.out.println("Error while closing socket."); }
 		}

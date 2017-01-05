@@ -44,7 +44,7 @@ public class FileList {
 		
 		for(int i = 0; i<fileList.size(); i++)
 		{
-			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i))+" "+checkSum(fileList.get(i));
+			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i))+" "+checkSum(fileList.get(i))+"\n";
 		}
 		return list;
 	}
@@ -66,7 +66,7 @@ public class FileList {
 		}
 	}
 	
-	public String checkSum(File file) 
+	public static String checkSum(File file) 
 	{
 		String checksum = "";
 		
@@ -100,7 +100,7 @@ public class FileList {
 		} 
 		catch (NoSuchAlgorithmException e1) { e1.printStackTrace(); return "Checksum err.";}
 		
-		return checksum+"\n";		
+		return checksum;		
 	}
 	
 	public File getFile(String filename)

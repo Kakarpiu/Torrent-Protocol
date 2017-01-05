@@ -128,6 +128,8 @@ public class UserInterface extends Thread{
 			
 			case "getlist" :
 			{
+				if(peers.isEmpty())
+					System.out.println("No connections made");
 				for(Connection c : peers)
 				{
 					c.getFileList();
@@ -152,9 +154,10 @@ public class UserInterface extends Thread{
 				if(argsCount > 1)
 				{
 					StringBuffer filename = new StringBuffer();
-					for(int i = 1; i<arguments.length; i++)
+					filename.append(arguments[1]);
+					for(int i = 2; i<arguments.length; i++)
 					{
-						filename.append(arguments[i]);
+						filename.append(" "+arguments[i]);
 					}
 					File file = fileList.getFile(filename.toString());
 					System.out.println(filename.toString());
