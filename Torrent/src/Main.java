@@ -12,27 +12,9 @@ public class Main {
 		int instance = getInstanceNumber();
 		UserInterface ui = UserInterface.getInstance();
 		
-		System.out.println("What port do you want to listen for connections on? Choose between 10000 and 20000");
-		while(true)
-		{
-			try 
-			{
-				int port = Integer.parseInt(ui.console.readLine());
-				if((port >= 10000) && (port <= 20000))
-				{
-					Main.PORT = port;
-					break;
-				}
-				else
-				{
-					System.out.println("Choose between 10000 and 20000.");
-				}
-			}
-			catch (NumberFormatException e) { System.out.println("Input needs to be an Integer number beetwen 10000 and 20000"); }
-			catch (IOException e) { System.out.println("Error while reading from console. Restart program"); System.exit(0); }
-		}
-
 		HostListener hl = HostListener.getInstance(Main.PORT);
+		
+		
 	
 		ui.start();
 		hl.start();

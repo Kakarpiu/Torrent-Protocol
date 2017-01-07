@@ -21,7 +21,6 @@ public class Connection extends Thread{
 	{
 		connectionSocket = s;
 		ip = connectionSocket.getInetAddress();
-		connectionPort = connectionSocket.getPort();
 		try
 		{
 			out = new PrintWriter(connectionSocket.getOutputStream(), true);
@@ -82,7 +81,11 @@ public class Connection extends Thread{
 					String filesize = in.readLine();
 					System.out.println("Peer with ID: "+idnumber+" is pushing "+filename+" "+filesize);
 					
-					FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE, this);
+					
+					int transferport = 60001;	
+					System.out.println("port established "+transferport);
+					
+					FileTransfer ft = new FileTransfer(transferport, new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE, this);
 					transfers.add(ft);
 					ft.start();
 				}
@@ -98,11 +101,11 @@ public class Connection extends Thread{
 					File file = UserInterface.fileList.getFile(filename);
 					if(file != null)
 					{
-					int transferport = 60001;
-							
-					FileTransfer ft = new FileTransfer(new Socket(connectionSocket.getInetAddress(), transferport), file, FileTransfer.command.PUSH, this);
-					transfers.add(ft);
-					ft.start();
+						int transferport = 60001;	
+								
+						FileTransfer ft = new FileTransfer(new Socket(connectionSocket.getInetAddress(), transferport), file, FileTransfer.command.PUSH, this);
+						transfers.add(ft);
+						ft.start();
 					}
 					else
 					{
@@ -215,10 +218,9 @@ public class Connection extends Thread{
 			out.println("Push");
 			out.println(file.getName());
 			out.println(FileList.getFileSize(file));
-			out.println(FileList.checkSum(file));
 			
 			int transferport = 60001;
-				
+			
 			FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH, this);
 			transfers.add(ft);
 			ft.start();
@@ -232,30 +234,10 @@ public class Connection extends Thread{
 		out.println("Pull");
 		out.println(file);
 		
-		FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE, this);
+		FileTransfer ft = new FileTransfer(60001, new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE, this);
 		transfers.add(ft);
 		ft.start();
 	}
-	
-//	public void reconnect()
-//	{
-//		connectionSocket = new Socket();
-//			try 
-//			{
-//				connectionSocket.setSoTimeout(60000);
-//				do
-//				{
-//					try 
-//					{
-//						connectionSocket.connect(new InetSocketAddress(ip, connectionPort));
-//						
-//						
-//					} 
-//					catch (IOException e) {  }
-//				} while (connectionSocket.isConnected());
-//			} 
-//			catch (SocketException e) { System.out.println("Reconnect timeout"); }
-//	}
 }
 
 

@@ -36,8 +36,9 @@ public class FileTransfer extends Thread{
 		mymaster = c;
 	}
 	
-	public FileTransfer(File file, command cmd, Connection c)
+	public FileTransfer(int transferport, File file, command cmd, Connection c)
 	{
+		this.transferport = transferport;
 		this.file = file;
 		this.cmd = cmd;
 		mymaster = c;
@@ -86,7 +87,7 @@ public class FileTransfer extends Thread{
 				System.out.println(file.getName()+" pushed");
 				socket.close();
 			}
-			catch (IOException | NullPointerException e) { System.out.println("Error while sending file. Sent "+n*bufferSizeKB+" KB "+e.toString()); reconnect("push"); }
+			catch (IOException | NullPointerException e) { System.out.println("Error while sending file. Sent "+n*bufferSizeKB+" KB "); }
 		}
 		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	 }
@@ -110,44 +111,9 @@ public class FileTransfer extends Thread{
 				System.out.println(file.getName()+" received");
 				socket.close();
 			}
-			catch (IOException | NullPointerException e) { System.out.println("Error while receiving file. Received "+n*bufferSizeKB+" KB "+e.toString()); reconnect("recv"); }
+			catch (IOException | NullPointerException e) { System.out.println("Error while receiving file. Received "+n*bufferSizeKB+" KB ");  }
 		}
 		catch (IOException e) { System.out.println("Error while creating streams for files."); }
 	}
-	
-	public void reconnect(String method)
-	{
-		System.out.println("Trying to restart transfer");
-//		if(!mymaster.isConnected())
-//			mymaster.reconnect();
-//		
-		if(method.equals("push"))
-		{
-			try 
-			{
-				socket.close();
-				do 
-				{
-					try
-					{
-						socket = new Socket(ip, transferport);
-						push();
-					}
-					catch (IOException e) { e.toString(); }
-				} while(!socket.isConnected());
-			} 
-			catch (IOException e) { }
-		}
-		
-		else if(method.equals("recv"))
-		{
-			try 
-			{
-				socket.close();
-				getSocket();
-				receive();
-			} 
-			catch (IOException e) { System.out.println("Error while closing socket."); }
-		}
-	}
+
 }
