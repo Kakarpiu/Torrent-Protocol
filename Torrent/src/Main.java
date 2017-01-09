@@ -1,7 +1,6 @@
 import java.io.*;
-import java.net.*;
 
-public class Client {
+public class Main {
 
 	static String LOGPATH = "C:/Torrent/InstanceLog.txt";
 	static String DIRPATH = "C:/Torrent/TORrent_";
@@ -11,25 +10,19 @@ public class Client {
 		// TODO Auto-generated method stub
 		
 		int instance = getInstanceNumber();
-		String ip = args[0];
-		int port;
+		int port = 0;
 		
 		try
 		{
-			port = Integer.parseInt(args[1]);
-		} 
-		catch(NumberFormatException e) { System.out.println("Port needs to be an integer number."); destroyInstance();}
-		
-		try 
-		{
-			Socket sock = new Socket("127.0.0.1", 10000);
-			
-			Connection conn = new Connection(sock);
+			port = Integer.parseInt(args[0]);
 		}
-		catch (UnknownHostException e) { System.out.println("No server with these address"); destroyInstance();}
-		catch (IOException e1) { System.out.println("Could not connect"); destroyInstance();}
+		catch (NumberFormatException e) { System.out.println("Number Format Exception."); destroyInstance();}
 		
-		
+		UserInterface ui = UserInterface.getInstance();
+		HostListener hl = HostListener.getInstance(port);
+	
+		ui.start();
+		hl.start();		
 	}
 	
 	private static int getInstanceNumber()
@@ -92,6 +85,8 @@ public class Client {
 				{
 					BufferedWriter writer = new BufferedWriter(new FileWriter(instanceLog));
 					writer.write(Integer.toString(number));
+					reader.close();
+					writer.close();
 					System.exit(0);
 				}
 				catch (IOException e) { System.out.println("Couldn't overwrite file"); System.exit(0); }

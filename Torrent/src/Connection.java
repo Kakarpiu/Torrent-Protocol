@@ -14,7 +14,7 @@ public class Connection extends Thread{
 	private BufferedReader in = null;
 	
 	// FILETRANSFER LIST
-	private ArrayList<FileTransfer> transfers = new ArrayList<FileTransfer>();
+	private FileList list = FileList.getInstance(Client.DIRPATH);
 	
 	public Connection(Socket s) // When connecting
 	{
@@ -26,8 +26,10 @@ public class Connection extends Thread{
 			out = new PrintWriter(connectionSocket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 			
+			out.println("Connect");
 			idnumber = Integer.parseInt(in.readLine());
 			out.println("ACK");
+			sendFileList();
 			System.out.println("Connection with server established. ID number: "+idnumber);
 			this.start();
 		}	
@@ -176,7 +178,6 @@ public class Connection extends Thread{
 		} 
 		catch (IOException e) { System.out.println("Couldn't get list."); }
 	}
-	
 	
 	public void push(File file)
 	{
