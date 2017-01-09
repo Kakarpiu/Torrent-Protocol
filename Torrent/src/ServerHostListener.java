@@ -7,6 +7,7 @@ import java.util.ArrayList;
 public class ServerHostListener extends Thread{
 
 	static ServerHostListener instance = null;
+	private int idnumber = 0;
 	private ServerSocket listener = null;
 	private ArrayList<Connection> peers =  new ArrayList<Connection>();
 	
@@ -57,8 +58,7 @@ public class ServerHostListener extends Thread{
 			{
 				case "Connect" :
 				{
-					int idnumber = (int)(Math.random()*1000000)+1;
-					Connection newCon = new Connection(socket, idnumber);
+					Connection newCon = new Connection(socket, idnumber++);
 				}
 				break;
 			}

@@ -14,7 +14,7 @@ public class Connection extends Thread{
 	private BufferedReader in = null;
 	
 	// FILETRANSFER LIST
-	private FileList list = FileList.getInstance(Client.DIRPATH);
+	private String list = "";
 	
 	public Connection(Socket s) // When connecting
 	{
@@ -50,6 +50,12 @@ public class Connection extends Thread{
 			out.println(id);
 			if(in.readLine().equals("ACK"))
 			{
+				String r = "";
+				StringBuffer sb = new StringBuffer();
+				while(!(r = in.readLine()).equals("END"))
+				{
+					
+				}
 				System.out.println("Connection with IP: "+ip.toString()+" established. ID number: "+idnumber);
 				this.start();
 			}
