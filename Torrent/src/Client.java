@@ -1,6 +1,6 @@
 import java.io.*;
 
-public class Main {
+public class Client {
 
 	static String LOGPATH = "C:/Torrent/InstanceLog.txt";
 	static String DIRPATH = "C:/Torrent/TORrent_";
@@ -11,9 +11,7 @@ public class Main {
 		
 		int instance = getInstanceNumber();
 		
-		UserInterface ui = UserInterface.getInstance();
-		HostListener hl = HostListener.getInstance(Main.PORT);
-	
+			
 		ui.start();
 		hl.start();
 		

@@ -28,8 +28,7 @@ public class Connection extends Thread{
 			
 			idnumber = Integer.parseInt(in.readLine());
 			out.println("ACK");
-			System.out.println("Connection with IP: "+ip.toString()+" established. ID number: "+idnumber);
-			UserInterface.peers.add(this);
+			System.out.println("Connection with server established. ID number: "+idnumber);
 			this.start();
 		}	
 		catch (IOException e){ System.out.println("Could not create streams."); }
@@ -50,7 +49,6 @@ public class Connection extends Thread{
 			if(in.readLine().equals("ACK"))
 			{
 				System.out.println("Connection with IP: "+ip.toString()+" established. ID number: "+idnumber);
-				UserInterface.peers.add(this);
 				this.start();
 			}
 		}
