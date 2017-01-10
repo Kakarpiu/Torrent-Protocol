@@ -3,7 +3,7 @@ import java.io.*;
 import java.net.*;
 
 
-public class Connection extends Thread{
+public class ServerConnection extends Thread{
 	
 	private InetAddress ip;
 	private int connectionPort;
@@ -14,39 +14,16 @@ public class Connection extends Thread{
 	private BufferedReader in = null;
 	
 	// FILETRANSFER LIST
-	private FileList list = null;
+	private String list;
 	
-	public Connection(Socket s, FileList list) // When connecting
-	{
-		connectionSocket = s;
-		this.list = list;
-		ip = connectionSocket.getInetAddress();
-		connectionPort = connectionSocket.getPort();
-		try
-		{
-			out = new PrintWriter(connectionSocket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-			
-			out.println("Connect");
-			idnumber = Integer.parseInt(in.readLine());
-			out.println("ACK");
-			sendFileList();
-			System.out.println("Connection with server established. ID number: "+idnumber);
-			this.start();
-		}	
-		catch (IOException e){ System.out.println("Could not create streams."); }
-		catch (NumberFormatException e) { System.out.println("Could not establish connection"); }
-	}
-	
-	public Connection(Socket s, int id) // When receiving
+	public ServerConnection(Socket s, PrintWriter output, BufferedReader input, int id) // When receiving
 	{
 		connectionSocket = s;
 		idnumber = id;	
 		try
 		{
-			ip = connectionSocket.getInetAddress();
-			out = new PrintWriter(connectionSocket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+			out = output;
+			in = input;
 			
 			out.println(id);
 			if(in.readLine().equals("ACK"))
@@ -55,8 +32,9 @@ public class Connection extends Thread{
 				StringBuffer sb = new StringBuffer();
 				while(!(r = in.readLine()).equals("END"))
 				{
-					
+					sb.append(r);
 				}
+				list = sb.toString();
 				System.out.println("Connection with IP: "+ip.toString()+" established. ID number: "+idnumber);
 				this.start();
 			}
@@ -172,7 +150,8 @@ public class Connection extends Thread{
 	
 	public void sendFileList()
 	{
-		
+		out.println(list.showFiles());
+		out.println("END");
 	}
 	
 	public void getFileList()

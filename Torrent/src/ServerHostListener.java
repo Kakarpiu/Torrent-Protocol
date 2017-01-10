@@ -9,7 +9,7 @@ public class ServerHostListener extends Thread{
 	static ServerHostListener instance = null;
 	private int idnumber = 0;
 	private ServerSocket listener = null;
-	private ArrayList<Connection> peers =  new ArrayList<Connection>();
+	private ArrayList<ServerConnection> peers =  new ArrayList<ServerConnection>();
 	
 	private ServerHostListener(int port)
 	{
@@ -35,34 +35,28 @@ public class ServerHostListener extends Thread{
 			try 
 			{
 				Socket clientSocket = listener.accept();
-				try 
-				{
-					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));;
-					PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
-					receive(clientSocket, in, out);
-				}
-				catch (IOException e) { System.out.println("Could not create stream."); }
+				ServerConnection newCon = new ServerConnection(clientSocket, idnumber++);
+				peers.add(newCon);
 			}
-			catch (IOException e) { System.out.println("Could not create socket."); }	
-			
+			catch (IOException e) { System.out.println("Could not create socket."); }
 		}	
 	}
 	
-	public void receive(Socket socket, BufferedReader in, PrintWriter out)
-	{
-		String handshake;
-		try 
-		{
-			handshake = in.readLine();
-			switch(handshake)
-			{
-				case "Connect" :
-				{
-					Connection newCon = new Connection(socket, idnumber++);
-				}
-				break;
-			}
-		}
-		catch (IOException e) { System.out.println("Error while receiving from stream"); }
-	}
+//	public void receive(Socket socket, BufferedReader in, PrintWriter out)
+//	{
+//		String handshake;
+//		try 
+//		{
+//			handshake = in.readLine();
+//			switch(handshake)
+//			{
+//				case "Connect" :
+//				{
+//					Connection newCon = new Connection(socket, idnumber++);
+//				}
+//				break;
+//			}
+//		}
+//		catch (IOException e) { System.out.println("Error while receiving from stream"); }
+//	}
 }
