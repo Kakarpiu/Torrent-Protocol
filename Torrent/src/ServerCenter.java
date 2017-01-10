@@ -12,8 +12,6 @@ public class ServerCenter {
 			sl.start();
 		}
 		catch(NumberFormatException e) { System.out.println("Port is not an Integer number"); System.exit(0); }
-	
-		
 	}
 
 }

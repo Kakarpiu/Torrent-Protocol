@@ -14,11 +14,12 @@ public class Connection extends Thread{
 	private BufferedReader in = null;
 	
 	// FILETRANSFER LIST
-	private String list = "";
+	private FileList list = null;
 	
-	public Connection(Socket s) // When connecting
+	public Connection(Socket s, FileList list) // When connecting
 	{
 		connectionSocket = s;
+		this.list = list;
 		ip = connectionSocket.getInetAddress();
 		connectionPort = connectionSocket.getPort();
 		try
@@ -167,6 +168,11 @@ public class Connection extends Thread{
 	public void disconnect()
 	{
 		out.println("Disconnect");
+	}
+	
+	public void sendFileList()
+	{
+		
 	}
 	
 	public void getFileList()

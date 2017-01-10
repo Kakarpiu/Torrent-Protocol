@@ -39,13 +39,13 @@ public class FileList {
 	public String showFiles()
 	{
 		refreshList();
-		String list = "";
+		StringBuffer list = new StringBuffer();
 		
 		for(int i = 0; i<fileList.size(); i++)
 		{
-			list += fileList.get(i).getName()+" "+getFileSize(fileList.get(i));
+			list.append(fileList.get(i).getName()+" "+getFileSize(fileList.get(i)));
 		}
-		return list;
+		return list.toString();
 	}
 	
 	public static String getFileSize(File file)

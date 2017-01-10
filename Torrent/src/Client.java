@@ -13,6 +13,7 @@ public class Client {
 		int instance = getInstanceNumber();
 		String ip = args[0];
 		int port;
+		FileList list = FileList.getInstance(DIRPATH);
 		
 		try
 		{
@@ -24,7 +25,7 @@ public class Client {
 		{
 			Socket sock = new Socket("127.0.0.1", 10000);
 			
-			Connection conn = new Connection(sock);
+			Connection conn = new Connection(sock, list);
 		}
 		catch (UnknownHostException e) { System.out.println("No server with these address"); destroyInstance();}
 		catch (IOException e1) { System.out.println("Could not connect"); destroyInstance();}
