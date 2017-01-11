@@ -29,39 +29,52 @@ public class ClientConnection extends Thread{
 	{
 		while(true)
 		{
-			
+			String s = Client.console.nextLine();
+			String[] arguments = s.split("\\s");
+			receive(arguments);
 		}
 	}
 	
-	public void receive(String command)
+	public void receive(String[] command)
 	{
-		switch (command)
+		switch (command[0])
 		{
-			case "SendingList" :
+			case "getlist" :
 			{
-				String s;
-				try 
+				out.println("GetList");
+				StringBuffer s = new StringBuffer();
+			
+				s.append(in.readLine());
+				String[] formatdata = s.toString().split("|");
+				
+				for(int i = 0; i<formatdata.length; i++)
 				{
-					while(!(s = in.readLine()).equals("END"))
-						System.out.println(s);
-				} 
-				catch (IOException e) { System.out.println("Error while sending list"); }
+					if(i % 3 == 0)
+						System.out.printf("%-60s", formatdata[i]);
+					if(i % 3 == 1)
+						System.out.printf("%-11s", formatdata[i]);
+					if(i % 3 == 2)
+						System.out.printf("%-32s\n", formatdata[i]);
+				}
 				break;
 			}
 			
-			case "Push" :
+			case "push" :
 			{
 				try 
 				{
-					String filename = in.readLine();
-					String filesize = in.readLine();
-					System.out.println("Peer with ID: "+idnumber+" is pushing "+filename+" "+filesize);
+					list.getFile(filename)
+					out.println("Push");
+					out.println(file.getName());
+					out.println(FileList.getFileSize(file));
 					
-					FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
+					int transferport = 60001;
+						
+					FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
 					ft.start();
-				}
-				catch (IOException e) { System.out.println("Stream exception."); }
-				break;
+					
+				} 
+				catch (IOException e) { System.out.println("Stream error"); }
 			}
 			
 		}

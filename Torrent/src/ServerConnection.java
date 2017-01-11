@@ -96,7 +96,6 @@ public class ServerConnection extends Thread{
 			
 			case "GetList" :
 			{
-				out.print("SendingList");
 				out.println(ServerHostListener.sendList());
 				out.println("END");
 				break;

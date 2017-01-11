@@ -7,7 +7,7 @@ public class Client {
 	static String LOGPATH = "C:/Torrent/InstanceLog.txt";
 	static String DIRPATH = "C:/Torrent/TORrent_";
 	static int PORT = 0;
-	Scanner console = new Scanner(System.in);
+	static Scanner console = new Scanner(System.in);
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
