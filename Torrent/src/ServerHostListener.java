@@ -9,7 +9,7 @@ public class ServerHostListener extends Thread{
 	static ServerHostListener instance = null;
 	private int idnumber = 0;
 	private ServerSocket listener = null;
-	private ArrayList<ServerConnection> peers =  new ArrayList<ServerConnection>();
+	static ArrayList<ServerConnection> peers =  new ArrayList<ServerConnection>();
 	
 	private ServerHostListener(int port)
 	{
@@ -34,9 +34,17 @@ public class ServerHostListener extends Thread{
 		{
 			try 
 			{
-				Socket clientSocket = listener.accept();
-				ServerConnection newCon = new ServerConnection(clientSocket, idnumber++);
-				peers.add(newCon);
+				Socket socket = listener.accept();
+				try
+				{
+					PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+					BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					
+					ServerConnection newCon = new ServerConnection(socket, out, in, idnumber++);
+					peers.add(newCon);
+				}	
+				catch (IOException e){ System.out.println("Could not create streams."); }
+				
 			}
 			catch (IOException e) { System.out.println("Could not create socket."); }
 		}	

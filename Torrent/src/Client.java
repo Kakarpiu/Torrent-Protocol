@@ -1,22 +1,24 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class Client {
 
 	static String LOGPATH = "C:/Torrent/InstanceLog.txt";
 	static String DIRPATH = "C:/Torrent/TORrent_";
 	static int PORT = 0;
+	Scanner console = new Scanner(System.in);
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
 		int instance = getInstanceNumber();
-		String ip = args[0];
+		String ip = "127.0.0.1"; //args[0];
 		int port;
 		
 		try
 		{
-			port = Integer.parseInt(args[1]);
+			port = Integer.parseInt("10000"); //args[1]
 			try 
 			{
 				Socket sock = new Socket(ip, port);

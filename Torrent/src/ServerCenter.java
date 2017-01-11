@@ -6,7 +6,7 @@ public class ServerCenter {
 		
 		try
 		{
-			int port = Integer.parseInt(args[0]);
+			int port = Integer.parseInt("10000"); //args[0]
 			
 			ServerHostListener sl = ServerHostListener.getInstance(port);
 			sl.start();

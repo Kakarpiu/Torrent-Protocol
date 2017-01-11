@@ -44,15 +44,14 @@ public class FileList {
 		StringBuffer list = new StringBuffer();
 		
 		for(int i = 0; i<fileList.size(); i++)
-		{
-			list.append(fileList.get(i).getName()+","+getFileSize(fileList.get(i))+","+checkSum(fileList.get(i))+",");
-		}
+			list.append(fileList.get(i).getName()+"|"+getFileSize(fileList.get(i))+"|"+checkSum(fileList.get(i))+"|");
+		
 		return list.toString();
 	}
 	
 	public void printList()
 	{
-		String[] formatdata = showFiles().toString().split(",");
+		String[] formatdata = showFiles().toString().split("|");
 		
 		for(int i = 0; i<formatdata.length; i++)
 		{

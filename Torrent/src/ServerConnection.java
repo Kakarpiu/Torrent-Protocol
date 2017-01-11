@@ -5,8 +5,6 @@ import java.net.*;
 
 public class ServerConnection extends Thread{
 	
-	private InetAddress ip;
-	private int connectionPort;
 	private int idnumber;
 	
 	private Socket connectionSocket = null;
@@ -16,7 +14,7 @@ public class ServerConnection extends Thread{
 	// FILETRANSFER LIST
 	private String list;
 	
-	public ServerConnection(Socket s, PrintWriter output, BufferedReader input, int id) // When receiving
+	public ServerConnection(Socket s, PrintWriter output, BufferedReader input, int id)
 	{
 		connectionSocket = s;
 		idnumber = id;	
@@ -25,19 +23,15 @@ public class ServerConnection extends Thread{
 			out = output;
 			in = input;
 			
-			out.println(id);
-			if(in.readLine().equals("ACK"))
-			{
-				String r = "";
-				StringBuffer sb = new StringBuffer();
-				while(!(r = in.readLine()).equals("END"))
-				{
-					sb.append(r);
-				}
-				list = sb.toString();
-				System.out.println("Connection with IP: "+ip.toString()+" established. ID number: "+idnumber);
-				this.start();
-			}
+			String r = "";
+			StringBuffer sb = new StringBuffer();
+			
+			while(!(r = in.readLine()).equals("END"))
+				sb.append(r);
+			
+			list = sb.toString();
+			System.out.println("Connection with IP: "+s.getInetAddress().toString()+" established. ID number: "+idnumber);
+			this.start();
 		}
 		catch (IOException e) { System.out.println("Couldn't create streams."); }
 	}
@@ -51,7 +45,13 @@ public class ServerConnection extends Thread{
 				String command = in.readLine();
 				System.out.println(command);
 				receive(command);
-			} catch (IOException | NullPointerException e) { System.out.println("Host "+idnumber+" disconnected"); break;}			
+			} 
+			catch (IOException | NullPointerException e) 
+			{
+				System.out.println("Host "+idnumber+" disconnected"); 
+				ServerHostListener.peers.remove(this); 
+				this.interrupt(); 
+			}			
 		}
 	}	
 	
@@ -68,7 +68,6 @@ public class ServerConnection extends Thread{
 					System.out.println("Peer with ID: "+idnumber+" is pushing "+filename+" "+filesize);
 					
 					FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
-					transfers.add(ft);
 					ft.start();
 				}
 				catch (IOException e) { System.out.println("Stream exception."); }
@@ -86,7 +85,6 @@ public class ServerConnection extends Thread{
 					int transferport = 60001;
 							
 					FileTransfer ft = new FileTransfer(new Socket(connectionSocket.getInetAddress(), transferport), file, FileTransfer.command.PUSH);
-					transfers.add(ft);
 					ft.start();
 					}
 					else
@@ -127,12 +125,6 @@ public class ServerConnection extends Thread{
 			}
 		}
 	}
-	
-	public InetAddress getIp()
-	{
-		return ip;
-	}
-	
 	public int getID()
 	{
 		return idnumber;
@@ -150,7 +142,7 @@ public class ServerConnection extends Thread{
 	
 	public void sendFileList()
 	{
-		out.println(list.showFiles());
+		out.println(list);
 		out.println("END");
 	}
 	
@@ -169,34 +161,33 @@ public class ServerConnection extends Thread{
 		} 
 		catch (IOException e) { System.out.println("Couldn't get list."); }
 	}
-	
-	public void push(File file)
-	{
-		try 
-		{
-			out.println("Push");
-			out.println(file.getName());
-			out.println(FileList.getFileSize(file));
-			
-			int transferport = 60001;
-				
-			FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
-			transfers.add(ft);
-			ft.start();
-			
-		} 
-		catch (IOException e) { System.out.println("Stream error"); }
-	}
-	
-	public void pull(String file)
-	{
-		out.println("Pull");
-		out.println(file);
-		
-		FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE);
-		transfers.add(ft);
-		ft.start();
-	}
+//	
+//	public void push(File file)
+//	{
+//		try 
+//		{
+//			out.println("Push");
+//			out.println(file.getName());
+//			out.println(FileList.getFileSize(file));
+//			
+//			int transferport = 60001;
+//				
+//			FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
+//			ft.start();
+//			
+//		} 
+//		catch (IOException e) { System.out.println("Stream error"); }
+//	}
+//	
+//	public void pull(String file)
+//	{
+//		out.println("Pull");
+//		out.println(file);
+//		
+//		FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+file), FileTransfer.command.RECEIVE);
+//		transfers.add(ft);
+//		ft.start();
+//	}
 	
 }
 

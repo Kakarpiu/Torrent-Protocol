@@ -17,8 +17,7 @@ public class ClientConnection extends Thread{
 			out = new PrintWriter(socket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			
-			out.println("Connect");
-			out.println(list);
+			out.println(list.showFiles());
 			out.println("END");
 			System.out.println("Connection established.");
 			this.start();
@@ -26,6 +25,12 @@ public class ClientConnection extends Thread{
 		catch (IOException e){ System.out.println("Could not create streams."); }
 	}
 
-	
+	public void run()
+	{
+		while(true)
+		{
+			
+		}
+	}
 	
 }
