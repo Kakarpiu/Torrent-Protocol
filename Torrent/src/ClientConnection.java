@@ -33,4 +33,37 @@ public class ClientConnection extends Thread{
 		}
 	}
 	
+	public void receive(String command)
+	{
+		switch (command)
+		{
+			case "SendingList" :
+			{
+				String s;
+				try 
+				{
+					while(!(s = in.readLine()).equals("END"))
+						System.out.println(s);
+				} 
+				catch (IOException e) { System.out.println("Error while sending list"); }
+				break;
+			}
+			
+			case "Push" :
+			{
+				try 
+				{
+					String filename = in.readLine();
+					String filesize = in.readLine();
+					System.out.println("Peer with ID: "+idnumber+" is pushing "+filename+" "+filesize);
+					
+					FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
+					ft.start();
+				}
+				catch (IOException e) { System.out.println("Stream exception."); }
+				break;
+			}
+			
+		}
+	}	
 }

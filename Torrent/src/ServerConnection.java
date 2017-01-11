@@ -96,14 +96,13 @@ public class ServerConnection extends Thread{
 			
 			case "GetList" :
 			{
-				String list = UserInterface.fileList.showFiles();
-				out.println("SendList");
-				out.println(list);
+				out.print("SendingList");
+				out.println(ServerHostListener.sendList());
 				out.println("END");
 				break;
 			}
 			
-			case "SendList" :
+			case "SendingList" :
 			{
 				String s;
 				try 
@@ -145,22 +144,26 @@ public class ServerConnection extends Thread{
 		out.println(list);
 		out.println("END");
 	}
-	
-	public void getFileList()
-	{
-		try 
-		{
-			out.println("GetList");
-			String response = in.readLine();
-			
-			if(response != null)
-				System.out.println(response);
-			else
-				System.out.println("List is empty.");
 
-		} 
-		catch (IOException e) { System.out.println("Couldn't get list."); }
+	public String getList()
+	{
+		return list;
 	}
+//	public void getFileList()
+//	{
+//		try 
+//		{
+//			out.println("GetList");
+//			String response = in.readLine();
+//			
+//			if(response != null)
+//				System.out.println(response);
+//			else
+//				System.out.println("List is empty.");
+//
+//		} 
+//		catch (IOException e) { System.out.println("Couldn't get list."); }
+//	}
 //	
 //	public void push(File file)
 //	{

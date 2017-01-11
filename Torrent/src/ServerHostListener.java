@@ -50,6 +50,17 @@ public class ServerHostListener extends Thread{
 		}	
 	}
 	
+	public static String sendList()
+	{
+		StringBuffer sb = new StringBuffer();
+		for(ServerConnection sc : peers)
+		{
+			sb.append("List from host "+sc.getID());
+			sb.append(sc.getList());
+		}
+		return sb.toString();
+	}
+	
 //	public void receive(Socket socket, BufferedReader in, PrintWriter out)
 //	{
 //		String handshake;
