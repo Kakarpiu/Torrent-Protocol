@@ -10,7 +10,7 @@ public class ServerConnection extends Thread{
 	private Socket connectionSocket = null;
 	private PrintWriter out = null;
 	private BufferedReader in = null;
-	
+
 	// FILETRANSFER LIST
 	private String list;
 	
@@ -36,93 +36,6 @@ public class ServerConnection extends Thread{
 		catch (IOException e) { System.out.println("Couldn't create streams."); }
 	}
 	
-	public void run()
-	{
-		while(true)
-		{
-			try 
-			{
-				String command = in.readLine();
-				System.out.println(command);
-				receive(command);
-			} 
-			catch (IOException | NullPointerException e) 
-			{
-				System.out.println("Host "+idnumber+" disconnected"); 
-				ServerHostListener.peers.remove(this); 
-				this.interrupt(); 
-			}			
-		}
-	}	
-	
-	public void receive(String command)
-	{
-		switch (command)
-		{
-			case "Push" :
-			{
-				try 
-				{
-					String filename = in.readLine();
-					String filesize = in.readLine();
-					System.out.println("Peer with ID: "+idnumber+" is pushing "+filename+" "+filesize);
-					
-					FileTransfer ft = new FileTransfer(new File(Main.DIRPATH+"/"+filename), FileTransfer.command.RECEIVE);
-					ft.start();
-				}
-				catch (IOException e) { System.out.println("Stream exception."); }
-				break;
-			}
-			
-			case "Pull" :
-			{
-				try
-				{
-					String filename = in.readLine();
-					File file = UserInterface.fileList.getFile(filename);
-					if(file != null)
-					{
-					int transferport = 60001;
-							
-					FileTransfer ft = new FileTransfer(new Socket(connectionSocket.getInetAddress(), transferport), file, FileTransfer.command.PUSH);
-					ft.start();
-					}
-					else
-						out.println("NAK");
-				}
-				catch (IOException e) { System.out.println(); }
-				break;
-			}
-			
-			case "GetList" :
-			{
-				out.println(ServerHostListener.sendList());
-				out.println("END");
-				break;
-			}
-			
-			case "SendingList" :
-			{
-				String s;
-				try 
-				{
-					while(!(s = in.readLine()).equals("END"))
-						System.out.println(s);
-				} catch (IOException e) { System.out.println("Error while sending list"); }
-				break;
-			}
-			
-			case "Disconnect" :
-			{
-				try 
-				{
-					connectionSocket.close();
-					System.out.println("Peer disconnected.");
-				} catch (IOException e) { System.out.println("Error while disconnecting."); }
-				break;
-			}
-		}
-	}
 	public int getID()
 	{
 		return idnumber;
@@ -148,6 +61,114 @@ public class ServerConnection extends Thread{
 	{
 		return list;
 	}
+	
+	public void run()
+	{
+		while(true)
+		{
+			try 
+			{
+				String command = in.readLine();
+					commandCenter(command);
+			} 
+			catch (IOException | NullPointerException e) 
+			{
+				System.out.println("Host "+idnumber+" disconnected"); 
+				ServerHostListener.peers.remove(this); 
+				this.interrupt(); 
+				break;
+			}			
+		}
+	}	
+	
+	public void commandCenter(String command)
+	{
+		switch (command)
+		{
+			case "Push" :
+			{
+				try 
+				{
+					String filename = in.readLine();
+					String host = in.readLine();
+					try
+					{
+						int id = Integer.parseInt(host);
+						ServerConnection receiver = ServerHostListener.getHost(id); 
+						
+						if(receiver != null)
+						{
+							receiver.receive(filename);
+							out.println("StartPushing");
+							out.print(filename);
+							out.println(connectionSocket.getInetAddress());
+							out.println(id+20000);
+						}
+						
+					}
+					catch(NumberFormatException e) { return; }
+				}
+				catch (IOException e) { System.out.println("Stream exception."); }
+				break;
+			}
+//			
+//			case "Pull" :
+//			{
+//				try
+//				{
+//					String filename = in.readLine();
+//					File file = UserInterface.fileList.getFile(filename);
+//					if(file != null)
+//					{
+//					int transferport = 60001;
+//							
+//					FileTransfer ft = new FileTransfer(new Socket(connectionSocket.getInetAddress(), transferport), file, FileTransfer.command.PUSH);
+//					ft.start();
+//					}
+//				}
+//				catch (IOException e) { System.out.println(); }
+//				break;
+//			}
+			
+			case "GetList" :
+			{
+				System.out.println("Get List");
+				out.println("Sendinglist");
+				out.println(ServerHostListener.sendList());
+				out.println("END");
+				System.out.println("I sent list");
+				break;
+			}
+			
+			case "SendingList" :
+			{
+				String s;
+				try 
+				{
+					while(!(s = in.readLine()).equals("END"))
+						System.out.println(s);
+				} catch (IOException e) { System.out.println("Error while sending list"); }
+				break;
+			}
+			
+			case "Disconnect" :
+			{
+				try 
+				{
+					connectionSocket.close();
+					System.out.println("Peer disconnected.");
+				} catch (IOException e) { System.out.println("Error while disconnecting."); }
+				break;
+			}
+		}
+	}
+	
+	public void receive(String filename)
+	{
+		out.println("StartReceiving");
+		out.println(filename);
+	}
+
 //	public void getFileList()
 //	{
 //		try 

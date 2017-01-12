@@ -39,9 +39,23 @@ public class ServerHostListener extends Thread{
 				{
 					PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 					BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					switch(in.readLine())
+					{
+						case "Connect" :
+						{
+							ServerConnection newCon = new ServerConnection(socket, out, in, idnumber++);
+							peers.add(newCon);
+						}
+//						case "PushFile" :
+//						{
+//							String filename = in.readLine();
+//							String id = in.readLine();
+//							
+//							int host = Integer.parseInt(id);
+//							getHost(host).receive(socket, filename);
+//						}
+					}
 					
-					ServerConnection newCon = new ServerConnection(socket, out, in, idnumber++);
-					peers.add(newCon);
 				}	
 				catch (IOException e){ System.out.println("Could not create streams."); }
 				
@@ -55,10 +69,20 @@ public class ServerHostListener extends Thread{
 		StringBuffer sb = new StringBuffer();
 		for(ServerConnection sc : peers)
 		{
-			sb.append("List from host "+sc.getID());
+			sb.append("List from host "+sc.getID()+"\n");
 			sb.append(sc.getList());
 		}
 		return sb.toString();
+	}
+	
+	public static ServerConnection getHost(int id)
+	{
+		for(ServerConnection s : peers)
+		{
+			if(s.getID() == id)
+				return s;
+		}
+		return null;
 	}
 	
 //	public void receive(Socket socket, BufferedReader in, PrintWriter out)

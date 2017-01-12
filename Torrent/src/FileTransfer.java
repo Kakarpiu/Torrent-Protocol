@@ -28,13 +28,6 @@ public class FileTransfer extends Thread{
 	public FileTransfer(Socket socket, File file, command cmd)
 	{
 		this.socket = socket;
-		ip = socket.getInetAddress();
-		this.file = file;
-		this.cmd = cmd;
-	}
-	
-	public FileTransfer(File file, command cmd)
-	{
 		this.file = file;
 		this.cmd = cmd;
 	}
@@ -44,24 +37,7 @@ public class FileTransfer extends Thread{
 		if(cmd == command.PUSH)
 			push();
 		else if(cmd == command.RECEIVE)
-		{
-			
-				getSocket();
-				receive();
-			
-		}	
-	}
-	
-	public void getSocket()
-	{
-		try 
-		{
-			ServerSocket receiveSock = new ServerSocket(transferport);
-			socket = receiveSock.accept();
-			ip = socket.getInetAddress();
-			receiveSock.close();
-		}
-		catch (IOException e) { System.out.println("Error while creating socket."); }
+			receive();
 	}
 	
 	public void push()

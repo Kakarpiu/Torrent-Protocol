@@ -44,7 +44,7 @@ public class FileList {
 		StringBuffer list = new StringBuffer();
 		
 		for(int i = 0; i<fileList.size(); i++)
-			list.append(fileList.get(i).getName()+"|"+getFileSize(fileList.get(i))+"|"+checkSum(fileList.get(i))+"|");
+			list.append(fileList.get(i).getName()+":"+getFileSize(fileList.get(i))+":"+checkSum(fileList.get(i))+":");
 		
 		return list.toString();
 	}
@@ -127,6 +127,7 @@ public class FileList {
 			if(f.getName().equals(filename))
 				return f;
 		}
+		System.out.println("No such file.");
 		return null;
 	}
 }

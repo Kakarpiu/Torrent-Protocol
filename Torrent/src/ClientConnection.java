@@ -9,6 +9,33 @@ public class ClientConnection extends Thread{
 	
 	FileList list = FileList.getInstance(Client.DIRPATH);
 	
+	Thread suspendConnection = new Thread()
+	{
+		public void run()
+		{
+			while(socket.isConnected()){}
+			System.out.println("Disconnected from server");
+			this.interrupt();
+		}
+	};
+	
+	Thread listener = new Thread()
+	{
+		public void run()
+		{
+			String resp;
+			while(true)
+			{
+				try 
+				{
+					resp = in.readLine();
+					receive(resp);
+				} 
+				catch (IOException e) { System.out.println("Listener error."); }
+			}
+		}
+	};
+	
 	public ClientConnection(Socket s) // When connecting
 	{
 		socket = s;
@@ -16,9 +43,11 @@ public class ClientConnection extends Thread{
 		{
 			out = new PrintWriter(socket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out.println("Connect");
 			
 			out.println(list.showFiles());
 			out.println("END");
+			
 			System.out.println("Connection established.");
 			this.start();
 		}	
@@ -27,25 +56,61 @@ public class ClientConnection extends Thread{
 
 	public void run()
 	{
+		suspendConnection.start();
+		listener.start();
 		while(true)
 		{
 			String s = Client.console.nextLine();
 			String[] arguments = s.split("\\s");
-			receive(arguments);
+			consoleRecv(arguments);
 		}
 	}
 	
-	public void receive(String[] command)
+	public void consoleRecv(String[] command)
 	{
 		switch (command[0])
 		{
 			case "getlist" :
 			{
 				out.println("GetList");
-				StringBuffer s = new StringBuffer();
+				break;
+			}
 			
-				s.append(in.readLine());
-				String[] formatdata = s.toString().split("|");
+			case "mylist" :
+			{
+				list.printList();
+			}
+			
+			case "push" :
+			{
+				File file = list.getFile(command[1]);
+				if(file == null) break;
+				
+				out.println("Push");	
+				out.println(file.getName());
+				out.println(command[2]);
+				break;
+			}
+		}
+	}	
+	
+	public void receive(String command)
+	{
+		switch (command)
+		{
+			case "Sendinglist" :
+			{
+				StringBuffer s = new StringBuffer();
+				
+				try 
+				{
+					String resp;
+					while(!(resp = in.readLine()).equals("END"))
+						s.append(resp);
+				}
+				catch (IOException e) { System.out.println("Receiving Exception"); }
+				
+				String[] formatdata = s.toString().split(":");
 				
 				for(int i = 0; i<formatdata.length; i++)
 				{
@@ -56,27 +121,36 @@ public class ClientConnection extends Thread{
 					if(i % 3 == 2)
 						System.out.printf("%-32s\n", formatdata[i]);
 				}
-				break;
 			}
 			
-			case "push" :
+			case "StartPushing" :
 			{
 				try 
 				{
-					list.getFile(filename)
-					out.println("Push");
-					out.println(file.getName());
-					out.println(FileList.getFileSize(file));
+					String filename = in.readLine();
+					String hostip = in.readLine();
+					String hostport = in.readLine();
 					
-					int transferport = 60001;
-						
-					FileTransfer ft = new FileTransfer(new Socket(ip, transferport), file, FileTransfer.command.PUSH);
-					ft.start();
+					int port = Integer.parseInt(hostport);
 					
-				} 
-				catch (IOException e) { System.out.println("Stream error"); }
+					Socket so = new Socket(new SocketInetAddress(), Client.Serverport);
+					PrintWriter out = new PrintWriter(so.getOutputStream(), true);
+					
+					out.println("PushFile");
+					out.println(filename);
+					out.println(id);
+					
+					FileTransfer push = new FileTransfer(so, list.getFile(filename),FileTransfer.command.PUSH);
+					push.start();
+				}
+				catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-			
 		}
-	}	
+	}
 }

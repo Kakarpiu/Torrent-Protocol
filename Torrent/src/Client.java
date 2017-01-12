@@ -6,24 +6,25 @@ public class Client {
 
 	static String LOGPATH = "C:/Torrent/InstanceLog.txt";
 	static String DIRPATH = "C:/Torrent/TORrent_";
-	static int PORT = 0;
 	static Scanner console = new Scanner(System.in);
+	static String Serverip;
+	static int Serverport;
+	static int ReceivingPort;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
 		int instance = getInstanceNumber();
-		String ip = "127.0.0.1"; //args[0];
-		int port;
+		Serverip = "127.0.0.1"; //args[0];
+		ReceivingPort = instance+20000; // args[2];
 		
 		try
 		{
-			port = Integer.parseInt("10000"); //args[1]
+			Serverport = Integer.parseInt("10000"); //args[1]
 			try 
 			{
-				Socket sock = new Socket(ip, port);
+				Socket sock = new Socket(Serverip, Serverport);
 				ClientConnection connection = new ClientConnection(sock);
-				connection.start();
 			}
 			catch (UnknownHostException e) { System.out.println("No server with these address"); destroyInstance();}
 			catch (IOException e1) { System.out.println("Could not connect"); destroyInstance(); }
